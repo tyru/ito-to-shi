@@ -17,7 +17,7 @@ window.ItoToShi = (function() {
         fill: 'red', cx: 10, cy: 10, r: 5, a: /*9.8*/ 1
       }],
       gameOverDS: [{
-        x: -99, y: -99, text: 'GAME OVER'
+        x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
       }],
       needleDx: 5,
       needleGapX: 10,
@@ -212,6 +212,7 @@ window.ItoToShi = (function() {
   var drawGameOver = function drawGameOver($gameover) {
     $gameover.enter().append('text')
       .attr('id', 'gameover')
+      .attr('font-size', function(d) { return d.fontSize; })
       .text(function(d) { return d.text; });
     // Movements
     $gameover.transition().duration(0)

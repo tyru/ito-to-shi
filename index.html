@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>糸通し</title>
   </head>
-  <body onload='ItoToShi.onLoad()'>
+  <body onload='ItoToShi.init()'>
     <svg id='game'
          version="1.1"
          xmlns="http://www.w3.org/2000/svg"
@@ -12,7 +12,7 @@
          xml:space="preserve"></svg>
 
     <button onclick='ItoToShi.enableFullscreen(document.getElementById("game"))'>フルスクリーン</button>
-    <button onclick='ItoToShi.toggle()'>Start/Stop</button>
+    <button onclick='ItoToShi.startStopContinue()'>Start/Stop/Continue</button>
 
     <style>
       #game {

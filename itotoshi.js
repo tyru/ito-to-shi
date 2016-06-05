@@ -1,22 +1,118 @@
 window.ItoToShi = (function() {
-  var svgDS = {
-    'width': 200,
-    'height': 200
-  };
-  var needleGroupDS = [
-    {x: 0, y: 0},
-    {x: 50, y: 10}
-  ];
-  var needleDS = [
-    {x: 0, y: 0, fill: 'gray', width: 10, height: 70, animate: true},
-    {x: 2, y: 1, fill: 'white', width: 6, height: 20, animate: true}
-  ];
-  var needleDx = 5;
-  var needleGapX = 10;
-  var needleResetX = -10;
-  var theTimer = null;
+  function getInitVars() {
+    return {
+      svgDS: {
+        'width': 200,
+        'height': 200
+      },
+      needleGroupDS: [ // <g>
+        {x: 0, y: 0},
+        {x: 50, y: 10}
+      ],
+      needleDS: [  // <rect>
+        {x: 0, y: 0, fill: 'gray', width: 10, height: 70, animate: true},
+        {x: 2, y: 1, fill: 'white', width: 6, height: 20, animate: true}
+      ],
+      threadDS: [{  // <circle>
+        fill: 'red', cx: 10, cy: 10, r: 5, a: /*9.8*/ 1
+      }],
+      needleDx: 5,
+      needleGapX: 10,
+      needleResetX: -10,
+      Da: 1,
+      minA: -10,
+      maxA: 10,
+      hovering: false,
+      threadGameOverGapY: 10,
+      isGameOver: false,
+      isInitial: true,
+      theTimer: null
+    };
+  }
+
   var INTERVAL = 1000.0 / 30.0;
+  var ST_INITIAL = 1;
+  var ST_RUNNING = 2;
+  var ST_STOPPED = 4;
+  var ST_GAMEOVER = 8;
   var $svg;
+  var ctx;
+
+  // 1. Initial -> (unset isInitial) -> Running
+  // 2. Running -> Stopped
+  // 3. Stopped -> Running
+  // 4. GameOver -> Initial -> (unset isInitial) -> Running
+  var startStopContinue = function startStopContinue() {
+    var state = getState();
+    if (state & (ST_INITIAL | ST_STOPPED)) {
+      ctx.isInitial = false;
+      ctx.theTimer = setInterval(update, INTERVAL);
+    } else if (state & ST_RUNNING) {
+      clearInterval(ctx.theTimer);
+      ctx.theTimer = null;
+    } else if (state & ST_GAMEOVER) {
+      init();
+      ctx.isInitial = false;
+      ctx.theTimer = setInterval(update, INTERVAL);
+    }
+  };
+
+  var getState = function getState() {
+    if (ctx.isGameOver) {
+      return ST_GAMEOVER;
+    } else if (ctx.isInitial) {
+      return ST_INITIAL;
+    } else if (!ctx.theTimer) {
+      return ST_STOPPED;
+    } else {
+      return ST_RUNNING;
+    }
+  };
+
+  var setGameOver = function setGameOver() {
+    clearInterval(ctx.theTimer);
+    ctx.theTimer = null;
+    ctx.isGameOver = true;
+  };
+
+  // 1. Initial -> (unset isInitial) -> Running
+  // 2. Running -> (set hovering) -> Running
+  // 3. Stopped -> Running
+  // 4. GameOver -> Initial -> (unset isInitial) -> Running
+  var setHovering = function() {
+    var state = getState();
+    if (state & (ST_INITIAL | ST_STOPPED)) {
+      ctx.isInitial = false;
+      ctx.theTimer = setInterval(update, INTERVAL);
+    } else if (state & ST_RUNNING) {
+      ctx.hovering = true;
+    } else if (state & ST_GAMEOVER) {
+      init();
+      ctx.isInitial = false;
+      ctx.theTimer = setInterval(update, INTERVAL);
+    }
+  };
+
+  var unsetHovering = function() {
+    ctx.hovering = false;
+  };
+
+  var init = function init() {
+    // Draw variables
+    ctx = getInitVars();
+    // Draw initial screen
+    $svg = d3.select("body").select("svg")
+      .on('touchstart', setHovering)
+      .on('touchend', unsetHovering)
+      .on('keydown', setHovering)
+      .on('keyup', unsetHovering)
+      .on('mousedown', setHovering)
+      .on('mouseup', unsetHovering)
+      .attr('width', ctx.svgDS.width)
+      .attr('height', ctx.svgDS.height);
+    drawThread(getThread());
+    drawNeedles(getNeedles());
+  };
 
   var enableFullscreen = function enableFullscreen(elem) {
     if (elem.requestFullscreen) {
@@ -30,26 +126,19 @@ window.ItoToShi = (function() {
     }
   };
 
-  var onLoad = function onLoad() {
-    $svg = d3.select("body").select("svg")
-      .attr('width', svgDS.width)
-      .attr('height', svgDS.height);
-    drawNeedles(needles());
-  };
-
   // Need to access to moving objects via D3 API.
-  // (Saving to '$needles' variable leaves old objects in display...)
-  var needles = function needles() {
-    return $svg.selectAll('g').data(needleGroupDS);
+  // (Saving to '$needles' variable leaves old objects in screen...)
+  var getNeedles = function getNeedles() {
+    return $svg.selectAll('g').data(ctx.needleGroupDS);
   };
 
   var moveNeedles = function moveNeedles() {
-    needleGroupDS = needleGroupDS.map(function(d) {
-      if (d.x + needleDx >= svgDS.width + needleGapX) {
-        d.x = needleResetX;
+    ctx.needleGroupDS = ctx.needleGroupDS.map(function(d) {
+      if (d.x + ctx.needleDx >= ctx.svgDS.width + ctx.needleGapX) {
+        d.x = ctx.needleResetX;
         d.animate = false;
       } else {
-        d.x += needleDx;
+        d.x += ctx.needleDx;
         d.animate = true;
       }
       return d;
@@ -60,7 +149,7 @@ window.ItoToShi = (function() {
     // Make needles
     $needles.enter().append('g')
       .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; })
-      .selectAll('rect').data(needleDS).enter().append('rect')
+      .selectAll('rect').data(ctx.needleDS).enter().append('rect')
       .attr('x', function(d) { return d.x; })
       .attr('y', function(d) { return d.y; })
       .attr('fill', function(d) { return d.fill; })
@@ -68,32 +157,69 @@ window.ItoToShi = (function() {
       .attr('height', function(d) { return d.height; })
     // Animation
     $needles.each(function(d) {
+      // http://stackoverflow.com/questions/26903355/how-to-cancel-scheduled-transition-in-d3
       d3.select(this)
       .transition().duration(d.animate ? INTERVAL : 0)
         .attr('transform', 'translate(' + d.x + ',' + d.y + ')')
     });
   };
 
-  var toggle = function toggle() {
-    if (theTimer) {
-      clearInterval(theTimer);
-      theTimer = null;
+  var getThread = function getThread() {
+    return $svg.selectAll('circle').data(ctx.threadDS);
+  };
+
+  var moveThread = function moveThread() {
+    var dataset = ctx.threadDS[0];
+    if (!ctx.hovering) {
+      if (dataset.a < ctx.maxA) {
+        console.log('down!');
+        dataset.a += ctx.Da;
+      }
     } else {
-      theTimer = setInterval(update, INTERVAL);
+      if (dataset.a > ctx.minA) {
+        console.log('up!');
+        dataset.a -= ctx.Da;
+      }
     }
+    dataset.cy += dataset.a;
+    console.log('a=' + dataset.a + ', cy=' + dataset.cy);
+    return dataset.cy < ctx.svgDS.height + ctx.threadGameOverGapY;
+  };
+
+  var drawThread = function drawThread($thread) {
+    $thread.enter().append('circle')
+      .attr('cx', function(d) { return d.cx; })
+      .attr('cy', function(d) { return d.cy; })
+      .attr('r', function(d) { return d.r; })
+      .attr('fill', function(d) { return d.fill; })
+      .attr('transform', function(d) { return 'translate(' + d.cx + ',' + d.cy + ')'; })
+    $thread.transition().duration(INTERVAL)
+      .attr('transform', function(d) { return 'translate(' + d.cx + ',' + d.cy + ')'; });
+  };
+
+  var drawGameOver = function drawGameOver() {
+    // TODO
   };
 
   var update = function update() {
     console.log('update() enter');
-    // Move
+    // Move objects
+    var doContinue = moveThread();
     moveNeedles();
-    // Update display
-    drawNeedles(needles());
+    // Update screen
+    drawThread(getThread());
+    drawNeedles(getNeedles());
+
+    if (!doContinue) {
+      drawGameOver();
+      setGameOver();
+      return;
+    }
   };
 
   return {
     enableFullscreen: enableFullscreen,
-    toggle: toggle,
-    onLoad: onLoad
+    startStopContinue: startStopContinue,
+    init: init
   };
 })();

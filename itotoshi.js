@@ -10,29 +10,55 @@ window.ItoToShi = (function() {
   // * Large devices (large desktops, 1200px and up)
   //   * @media (min-width: @screen-lg-min) { ... }
 
-  function getInitVars() {
+  var INTERVAL = 1000.0 / 30.0;
+  var ST_INITIAL = 1;
+  var ST_RUNNING = 2;
+  var ST_STOPPED = 4;
+  var ST_GAMEOVER = 8;
+  var NEEDLE_WHOLE_DY = 1;
+  var $svg;
+  var ctx;
+
+  var getInitVars = function getInitVars() {
+    var svgDS = {
+      width: 320,
+      height: 320
+    };
+    var scoreMmMap = [
+      [0, 100],
+      [10, 90],
+      [20, 80],
+      [30, 70],
+      [40, 60],
+      [50, 50],
+      [60, 40],
+      [70, 30]
+    ];
     return {
-      svgDS: {
-        width: 200,
-        height: 200
-      },
+      svgDS: svgDS,
       needleGroupDS: [ // <g>
-        {x: 0, y: 0},
-        {x: 50, y: 10}
+        {x: 100, y: 0, passed: false},
+        {x: 150, y: 10, passed: false}
       ],
       needleDS: [  // <rect>
-        {x: 0, y: 0, fill: 'gray', width: 10, height: 70, animate: true},
-        {x: 2, y: 1, fill: 'white', width: 6, height: 20, animate: true}
+        {x: 0, y: 0, fill: 'gray', width: 10, height: 999, animate: true},
+        {x: 2, y: NEEDLE_WHOLE_DY, fill: 'white', width: 6, height: scoreMmMap[0][1] /* 実際は px だけど... */, animate: true}
       ],
       threadDS: [{  // <circle>
         fill: 'red', cx: 10, cy: 10, r: 5, a: /*9.8*/ 1
       }],
-      gameOverDS: [{
+      statusTextDS: [{  // <text>
+        x: 100, y: 12, fontSize: '12px', text: '',
+        score: 0
+      }],
+      scoreMmMap: scoreMmMap,
+      level: 0,
+      gameOverDS: [{  // <text>
         x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
       }],
-      needleDx: 5,
-      needleGapX: 10,
-      needleResetX: -10,
+      needleDx: -5,
+      needleGapX: -10,
+      needleResetX: svgDS.width + 10,
       Da: 1,
       minA: -10,
       maxA: 10,
@@ -42,15 +68,7 @@ window.ItoToShi = (function() {
       isInitial: true,
       theTimer: null
     };
-  }
-
-  var INTERVAL = 1000.0 / 30.0;
-  var ST_INITIAL = 1;
-  var ST_RUNNING = 2;
-  var ST_STOPPED = 4;
-  var ST_GAMEOVER = 8;
-  var $svg;
-  var ctx;
+  };
 
   // 1. Initial -> (unset isInitial) -> Running
   // 2. Running -> Stopped
@@ -94,6 +112,7 @@ window.ItoToShi = (function() {
   // 3. Stopped -> Running
   // 4. GameOver -> Initial -> (unset isInitial) -> Running
   var setHovering = function() {
+    d3.event.preventDefault();    // Don't propagate click event to outside <svg> tag
     var state = getState();
     if (state & (ST_INITIAL | ST_STOPPED)) {
       ctx.isInitial = false;
@@ -126,6 +145,7 @@ window.ItoToShi = (function() {
       .attr('height', ctx.svgDS.height);
     drawThread(getThread());
     drawNeedles(getNeedles());
+    drawStatusText(getStatusText());
     drawGameOver(getGameOver());
   };
 
@@ -141,17 +161,20 @@ window.ItoToShi = (function() {
     }
   };
 
+  // ======================= Needles =======================
+
   // Need to access to moving objects via D3 API.
   // (Saving to '$needles' variable leaves old objects in screen...)
   var getNeedles = function getNeedles() {
-    return $svg.selectAll('g').data(ctx.needleGroupDS);
+    return $svg.selectAll('.needle').data(ctx.needleGroupDS);
   };
 
   var moveNeedles = function moveNeedles() {
     ctx.needleGroupDS = ctx.needleGroupDS.map(function(d) {
-      if (d.x + ctx.needleDx >= ctx.svgDS.width + ctx.needleGapX) {
+      if (d.x + ctx.needleDx < ctx.needleGapX) {
         d.x = ctx.needleResetX;
         d.animate = false;
+        d.passed = false;
       } else {
         d.x += ctx.needleDx;
         d.animate = true;
@@ -163,6 +186,7 @@ window.ItoToShi = (function() {
   var drawNeedles = function drawNeedles($needles) {
     // Make needles
     $needles.enter().append('g')
+      .attr('class', 'needle')
       .selectAll('rect').data(ctx.needleDS).enter().append('rect')
       .attr('x', function(d) { return d.x; })
       .attr('y', function(d) { return d.y; })
@@ -178,8 +202,10 @@ window.ItoToShi = (function() {
     });
   };
 
+  // ======================= Thread =======================
+
   var getThread = function getThread() {
-    return $svg.selectAll('circle').data(ctx.threadDS);
+    return $svg.selectAll('.thread').data(ctx.threadDS);
   };
 
   var moveThread = function moveThread() {
@@ -194,12 +220,12 @@ window.ItoToShi = (function() {
       }
     }
     dataset.cy += dataset.a;
-    console.log('a=' + dataset.a + ', cy=' + dataset.cy);
     return dataset.cy < ctx.svgDS.height + ctx.threadGameOverGapY;
   };
 
   var drawThread = function drawThread($thread) {
     $thread.enter().append('circle')
+      .attr('class', 'thread')
       .attr('cx', function(d) { return d.cx; })
       .attr('cy', function(d) { return d.cy; })
       .attr('r', function(d) { return d.r; })
@@ -209,20 +235,23 @@ window.ItoToShi = (function() {
       .attr('transform', function(d) { return 'translate(' + d.cx + ',' + d.cy + ')'; });
   };
 
+  // ======================= "GAME OVER" text =======================
+
   var getGameOver = function getGameOver() {
-    return $svg.selectAll('text').data(ctx.gameOverDS);
+    return $svg.selectAll('#gameOver').data(ctx.gameOverDS);
   };
 
   var moveGameOver = function moveGameOver() {
     var dataset = ctx.gameOverDS[0];
-    var bbox = document.getElementById('gameover').getBBox();
+    var bbox = document.getElementById('gameOver').getBBox();
     dataset.x = ctx.svgDS.width / 2 - bbox.width / 2;
     dataset.y = ctx.svgDS.height / 2 - bbox.height / 2;
   };
 
   var drawGameOver = function drawGameOver($gameover) {
     $gameover.enter().append('text')
-      .attr('id', 'gameover')
+      .attr('id', 'gameOver')
+      .attr('class', 'disable-select')
       .attr('font-size', function(d) { return d.fontSize; })
       .text(function(d) { return d.text; });
     // Movements
@@ -231,15 +260,85 @@ window.ItoToShi = (function() {
       .attr('y', function(d) { return d.y; })
   };
 
+  // ======================= Status text =======================
+
+  var getStatusText = function getStatusText() {
+    return $svg.selectAll('#statusText').data(ctx.statusTextDS);
+  };
+
+  // score -> level -> mm
+  var calcLevelByScore = function calcLevelByScore(score) {
+    if (ctx.level + 1 < ctx.scoreMmMap.length) {
+      if (score >= ctx.scoreMmMap[ctx.level + 1][0]) {
+        return ctx.level + 1;
+      }
+      return ctx.level;
+    } else {
+      return Math.min(ctx.level, ctx.scoreMmMap.length - 1);
+    }
+  };
+  
+  var getMmByLevel = function getMmByLevel(level) {
+    return ctx.scoreMmMap[level][1];
+  }
+
+  var drawStatusText = function drawStatusText($statusText) {
+    $statusText.enter().append('text')
+      .attr('id', 'statusText')
+      .attr('class', 'disable-select')
+      .attr('x', function(d) { return d.x; })
+      .attr('y', function(d) { return d.y; })
+      .attr('font-size', function(d) { return d.fontSize; });
+    // Movements
+    var mm = getMmByLevel(ctx.level);
+    $statusText.transition().duration(0)
+      .text(function(d) { return d.score + '本 針穴' + mm + 'mm'; });
+  };
+
+  // ======================= Collision detection =======================
+
+  // Detect collisions with thread & needles.
+  var detectCollision = function detectCollision() {
+    var doContinue = true;
+    var thread = ctx.threadDS[0];
+    var statusText = ctx.statusTextDS[0];
+    getNeedles().each(function(d) {
+      if (d.passed) return;
+      var mm = getMmByLevel(ctx.level);
+      var fromY = d.y + NEEDLE_WHOLE_DY;
+      var toY = fromY + mm;
+      if (thread.cx >= d.x) {
+        if (fromY <= thread.cy - thread.r && thread.cy + thread.r <= toY) { // Passed
+          statusText.score++;
+          ctx.level = calcLevelByScore(statusText.score);
+          d.passed = true;
+        } else {  // Failed
+          doContinue = false;
+        }
+      }
+    });
+    return doContinue;
+  };
+
+  // ======================= Collision detection =======================
+
+  //   before *1    result
+  //   false  false false
+  //   false  true  false
+  //   true   false false
+  //   true   true  true
+  // *1 moveThread(), detectCollision()
   var update = function update() {
     console.log('update() enter');
     // Move objects
     var doContinue = moveThread();
     moveNeedles();
+    doContinue = detectCollision() && doContinue;
     // Update screen
     drawThread(getThread());
     drawNeedles(getNeedles());
-
+    drawStatusText(getStatusText());
+    // GAME OVER
     if (!doContinue) {
       moveGameOver();
       drawGameOver(getGameOver());

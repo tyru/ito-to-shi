@@ -42,7 +42,8 @@ window.ItoToShi = (function() {
       ],
       needleDS: [  // <rect>
         {x: 0, y: 0, fill: 'gray', width: 10, height: 999, animate: true},
-        {x: 2, y: NEEDLE_WHOLE_DY, fill: 'white', width: 6, height: scoreMmMap[0][1] /* 実際は px だけど... */, animate: true}
+        {x: 2, y: NEEDLE_WHOLE_DY, fill: 'white', width: 6,
+          height: scoreMmMap[0][1], animate: true}
       ],
       threadDS: [{  // <circle>
         fill: 'red', cx: 10, cy: 10, r: 5, a: /*9.8*/ 1
@@ -184,22 +185,31 @@ window.ItoToShi = (function() {
   };
 
   var drawNeedles = function drawNeedles($needles) {
-    // Make needles
+    // Enter
     $needles.enter().append('g')
-      .attr('class', 'needle')
-      .selectAll('rect').data(ctx.needleDS).enter().append('rect')
+      .attr('class', 'needle');
+
+    var $needleChildren = $needles.selectAll('rect').data(ctx.needleDS);
+    $needleChildren
+      .enter().append('rect')
       .attr('x', function(d) { return d.x; })
       .attr('y', function(d) { return d.y; })
       .attr('fill', function(d) { return d.fill; })
-      .attr('width', function(d) { return d.width; })
-      .attr('height', function(d) { return d.height; });
-    // Movements
+      .attr('width', function(d) { return d.width; });
+
+    // Update
     $needles.each(function(d) {
       // http://stackoverflow.com/questions/26903355/how-to-cancel-scheduled-transition-in-d3
-      d3.select(this)
-      .transition().duration(d.animate ? INTERVAL : 0)
-        .attr('transform', 'translate(' + d.x + ',' + d.y + ')')
+      (d.animate ?
+        d3.select(this)
+          .transition().duration(INTERVAL) :
+        d3.select(this))
+          .attr('transform', 'translate(' + d.x + ',' + d.y + ')');
     });
+
+    $needleChildren
+      .transition().duration(INTERVAL * 3)
+      .attr('height', function (d) { return d.height; });
   };
 
   // ======================= Thread =======================
@@ -224,13 +234,14 @@ window.ItoToShi = (function() {
   };
 
   var drawThread = function drawThread($thread) {
+    // Enter
     $thread.enter().append('circle')
       .attr('class', 'thread')
       .attr('cx', function(d) { return d.cx; })
       .attr('cy', function(d) { return d.cy; })
       .attr('r', function(d) { return d.r; })
       .attr('fill', function(d) { return d.fill; });
-    // Movements
+    // Update
     $thread.transition().duration(INTERVAL)
       .attr('transform', function(d) { return 'translate(' + d.cx + ',' + d.cy + ')'; });
   };
@@ -249,13 +260,14 @@ window.ItoToShi = (function() {
   };
 
   var drawGameOver = function drawGameOver($gameover) {
+    // Enter
     $gameover.enter().append('text')
       .attr('id', 'gameOver')
       .attr('class', 'disable-select')
       .attr('font-size', function(d) { return d.fontSize; })
       .text(function(d) { return d.text; });
-    // Movements
-    $gameover.transition().duration(0)
+    // Update
+    $gameover
       .attr('x', function(d) { return d.x; })
       .attr('y', function(d) { return d.y; })
   };
@@ -277,21 +289,23 @@ window.ItoToShi = (function() {
       return Math.min(ctx.level, ctx.scoreMmMap.length - 1);
     }
   };
-  
+
+  // Actually returns 'px' number, not 'mm' ... ;)
   var getMmByLevel = function getMmByLevel(level) {
     return ctx.scoreMmMap[level][1];
   }
 
   var drawStatusText = function drawStatusText($statusText) {
+    // Enter
     $statusText.enter().append('text')
       .attr('id', 'statusText')
       .attr('class', 'disable-select')
       .attr('x', function(d) { return d.x; })
       .attr('y', function(d) { return d.y; })
       .attr('font-size', function(d) { return d.fontSize; });
-    // Movements
+    // Update
     var mm = getMmByLevel(ctx.level);
-    $statusText.transition().duration(0)
+    $statusText
       .text(function(d) { return d.score + '本 針穴' + mm + 'mm'; });
   };
 
@@ -311,6 +325,7 @@ window.ItoToShi = (function() {
         if (fromY <= thread.cy - thread.r && thread.cy + thread.r <= toY) { // Passed
           statusText.score++;
           ctx.level = calcLevelByScore(statusText.score);
+          ctx.needleDS[1].height = getMmByLevel(ctx.level);
           d.passed = true;
         } else {  // Failed
           doContinue = false;

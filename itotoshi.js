@@ -74,25 +74,6 @@ window.ItoToShi = (function() {
     };
   };
 
-  // 1. Initial -> (unset isInitial) -> Running
-  // 2. Running -> Stopped
-  // 3. Stopped -> Running
-  // 4. GameOver -> Initial -> (unset isInitial) -> Running
-  var startStopContinue = function startStopContinue() {
-    var state = getState();
-    if (state & (ST_INITIAL | ST_STOPPED)) {
-      ctx.isInitial = false;
-      ctx.theTimer = setInterval(update, INTERVAL);
-    } else if (state & ST_RUNNING) {
-      clearInterval(ctx.theTimer);
-      ctx.theTimer = null;
-    } else if (state & ST_GAMEOVER) {
-      init();
-      ctx.isInitial = false;
-      ctx.theTimer = setInterval(update, INTERVAL);
-    }
-  };
-
   var getState = function getState() {
     if (ctx.isGameOver) {
       return ST_GAMEOVER;
@@ -366,7 +347,6 @@ window.ItoToShi = (function() {
 
   return {
     enableFullscreen: enableFullscreen,
-    startStopContinue: startStopContinue,
     init: init
   };
 })();

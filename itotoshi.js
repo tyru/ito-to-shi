@@ -13,6 +13,7 @@ window.ItoToShi = (function() {
   // TODO: Auto full screen on load (#fullscreen)
   // TODO: More effects (explosion on GAME OVER, Level up, ...)
   // TODO: Better (background|needle)' images
+  // TODO: Use requestAnimationFrame() instead of setInterval() ?
 
   var INTERVAL = 1000.0 / 30.0;
   var ST_INITIAL = 1;

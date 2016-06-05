@@ -9,7 +9,7 @@
          version="1.1"
          xmlns="http://www.w3.org/2000/svg"
          xmlns:xlink="http://www.w3.org/1999/xlink"
-         width="200" height="200" xml:space="preserve"></svg>
+         xml:space="preserve"></svg>
 
     <button onclick='ItoToShi.enableFullscreen(document.getElementById("game"))'>フルスクリーン</button>
     <button onclick='ItoToShi.toggle()'>Start/Stop</button>
@@ -24,6 +24,10 @@
     <script src='d3-v3.5.17/d3.js'></script>
     <script type="text/javascript">
       window.ItoToShi = (function() {
+        var svgDS = {
+          'width': 200,
+          'height': 200
+        };
         var needleGroupDS = [
           {x: 0, y: 0},
           {x: 50, y: 10}
@@ -32,6 +36,9 @@
           {x: 0, y: 0, fill: 'gray', width: 10, height: 70},
           {x: 2, y: 1, fill: 'white', width: 6, height: 20}
         ];
+        var needleDx = 10;
+        var needleGapX = 20;
+        var needleResetX = -20;
         var theTimer = null;
         var INTERVAL = 1000.0 / 30.0;
         var $svg;
@@ -49,7 +56,9 @@
         };
 
         var onLoad = function onLoad() {
-          $svg = d3.select("body").select("svg");
+          $svg = d3.select("body").select("svg")
+            .attr('width', svgDS.width)
+            .attr('height', svgDS.height);
           drawNeedles(needles());
         };
 
@@ -61,8 +70,11 @@
 
         var moveNeedles = function moveNeedles() {
           needleGroupDS = needleGroupDS.map(function(el) {
-            el.x++;
-            el.y++;
+            if (el.x + needleDx >= svgDS.width + needleGapX) {
+              el.x = needleResetX;
+            } else {
+              el.x += needleDx;
+            }
             return el;
           });
         };

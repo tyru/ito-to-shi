@@ -8,12 +8,12 @@ window.ItoToShi = (function() {
     {x: 50, y: 10}
   ];
   var needleDS = [
-    {x: 0, y: 0, fill: 'gray', width: 10, height: 70},
-    {x: 2, y: 1, fill: 'white', width: 6, height: 20}
+    {x: 0, y: 0, fill: 'gray', width: 10, height: 70, animate: true},
+    {x: 2, y: 1, fill: 'white', width: 6, height: 20, animate: true}
   ];
   var needleDx = 5;
-  var needleGapX = 20;
-  var needleResetX = -20;
+  var needleGapX = 10;
+  var needleResetX = -10;
   var theTimer = null;
   var INTERVAL = 1000.0 / 30.0;
   var $svg;
@@ -44,23 +44,19 @@ window.ItoToShi = (function() {
   };
 
   var moveNeedles = function moveNeedles() {
-    var animate = true;
-    needleGroupDS = needleGroupDS.map(function(el) {
-      if (el.x + needleDx >= svgDS.width + needleGapX) {
-        el.x = needleResetX;
-        animate = false;
+    needleGroupDS = needleGroupDS.map(function(d) {
+      if (d.x + needleDx >= svgDS.width + needleGapX) {
+        d.x = needleResetX;
+        d.animate = false;
       } else {
-        el.x += needleDx;
+        d.x += needleDx;
+        d.animate = true;
       }
-      return el;
+      return d;
     });
-    return {
-      animate: animate
-    };
   };
 
-  var drawNeedles = function drawNeedles($needles, ctx) {
-    ctx = ctx || {};
+  var drawNeedles = function drawNeedles($needles) {
     // Make needles
     $needles.enter().append('g')
       .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; })
@@ -71,8 +67,11 @@ window.ItoToShi = (function() {
       .attr('width', function(d) { return d.width; })
       .attr('height', function(d) { return d.height; })
     // Animation
-    $needles.transition().duration(ctx.animate ? INTERVAL : 0)
-      .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+    $needles.each(function(d) {
+      d3.select(this)
+      .transition().duration(d.animate ? INTERVAL : 0)
+        .attr('transform', 'translate(' + d.x + ',' + d.y + ')')
+    });
   };
 
   var toggle = function toggle() {
@@ -87,9 +86,9 @@ window.ItoToShi = (function() {
   var update = function update() {
     console.log('update() enter');
     // Move
-    var ctx = moveNeedles();
+    moveNeedles();
     // Update display
-    drawNeedles(needles(), ctx);
+    drawNeedles(needles());
   };
 
   return {

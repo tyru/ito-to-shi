@@ -9,6 +9,9 @@ window.ItoToShi = (function() {
   //   * @media (min-width: @screen-md-min) { ... }
   // * Large devices (large desktops, 1200px and up)
   //   * @media (min-width: @screen-lg-min) { ... }
+  // TODO: Generate needles from random data
+  // TODO: Auto full screen on load (#fullscreen)
+  // TODO: Auto start on load (#fullscreen)
 
   var INTERVAL = 1000.0 / 30.0;
   var ST_INITIAL = 1;

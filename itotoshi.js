@@ -2,8 +2,8 @@ window.ItoToShi = (function() {
   function getInitVars() {
     return {
       svgDS: {
-        'width': 200,
-        'height': 200
+        width: 200,
+        height: 200
       },
       needleGroupDS: [ // <g>
         {x: 0, y: 0},
@@ -15,6 +15,9 @@ window.ItoToShi = (function() {
       ],
       threadDS: [{  // <circle>
         fill: 'red', cx: 10, cy: 10, r: 5, a: /*9.8*/ 1
+      }],
+      gameOverDS: [{
+        x: -99, y: -99, text: 'GAME OVER'
       }],
       needleDx: 5,
       needleGapX: 10,
@@ -112,6 +115,7 @@ window.ItoToShi = (function() {
       .attr('height', ctx.svgDS.height);
     drawThread(getThread());
     drawNeedles(getNeedles());
+    drawGameOver(getGameOver());
   };
 
   var enableFullscreen = function enableFullscreen(elem) {
@@ -172,12 +176,10 @@ window.ItoToShi = (function() {
     var dataset = ctx.threadDS[0];
     if (!ctx.hovering) {
       if (dataset.a < ctx.maxA) {
-        console.log('down!');
         dataset.a += ctx.Da;
       }
     } else {
       if (dataset.a > ctx.minA) {
-        console.log('up!');
         dataset.a -= ctx.Da;
       }
     }
@@ -197,8 +199,26 @@ window.ItoToShi = (function() {
       .attr('transform', function(d) { return 'translate(' + d.cx + ',' + d.cy + ')'; });
   };
 
-  var drawGameOver = function drawGameOver() {
-    // TODO
+  var getGameOver = function getGameOver() {
+    return $svg.selectAll('text').data(ctx.gameOverDS);
+  };
+
+  var moveGameOver = function moveGameOver() {
+    var dataset = ctx.gameOverDS[0];
+    var bbox = document.getElementById('gameover').getBBox();
+    dataset.x = ctx.svgDS.width / 2 - bbox.width / 2;
+    dataset.y = ctx.svgDS.height / 2 - bbox.height / 2;
+  };
+
+  var drawGameOver = function drawGameOver($gameover) {
+    $gameover.enter().append('text')
+      .attr('id', 'gameover')
+      .attr('x', function(d) { return d.x; })
+      .attr('y', function(d) { return d.y; })
+      .text(function(d) { return d.text; });
+    $gameover.transition().duration(0)
+      .attr('x', function(d) { return d.x; })
+      .attr('y', function(d) { return d.y; })
   };
 
   var update = function update() {
@@ -211,9 +231,9 @@ window.ItoToShi = (function() {
     drawNeedles(getNeedles());
 
     if (!doContinue) {
-      drawGameOver();
+      moveGameOver();
+      drawGameOver(getGameOver());
       setGameOver();
-      return;
     }
   };
 

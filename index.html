@@ -5,17 +5,17 @@
     <title>糸通し</title>
   </head>
   <body onload='ItoToShi.init()'>
-    <svg id='game'
+    <svg id='screen'
          version="1.1"
          xmlns="http://www.w3.org/2000/svg"
          xmlns:xlink="http://www.w3.org/1999/xlink"
          xml:space="preserve"></svg>
 
-    <button onclick='ItoToShi.enableFullscreen(document.getElementById("game"))'>フルスクリーン</button>
+    <button onclick='ItoToShi.enableFullscreen(document.getElementById("screen"))'>フルスクリーン</button>
     <button onclick='ItoToShi.startStopContinue()'>Start/Stop/Continue</button>
 
     <style>
-      #game {
+      #screen {
         display: block;
         margin-bottom: 15px;
         border: solid 1px black;

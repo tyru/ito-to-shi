@@ -152,14 +152,13 @@ window.ItoToShi = (function() {
   var drawNeedles = function drawNeedles($needles) {
     // Make needles
     $needles.enter().append('g')
-      .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; })
       .selectAll('rect').data(ctx.needleDS).enter().append('rect')
       .attr('x', function(d) { return d.x; })
       .attr('y', function(d) { return d.y; })
       .attr('fill', function(d) { return d.fill; })
       .attr('width', function(d) { return d.width; })
-      .attr('height', function(d) { return d.height; })
-    // Animation
+      .attr('height', function(d) { return d.height; });
+    // Movements
     $needles.each(function(d) {
       // http://stackoverflow.com/questions/26903355/how-to-cancel-scheduled-transition-in-d3
       d3.select(this)
@@ -193,8 +192,8 @@ window.ItoToShi = (function() {
       .attr('cx', function(d) { return d.cx; })
       .attr('cy', function(d) { return d.cy; })
       .attr('r', function(d) { return d.r; })
-      .attr('fill', function(d) { return d.fill; })
-      .attr('transform', function(d) { return 'translate(' + d.cx + ',' + d.cy + ')'; })
+      .attr('fill', function(d) { return d.fill; });
+    // Movements
     $thread.transition().duration(INTERVAL)
       .attr('transform', function(d) { return 'translate(' + d.cx + ',' + d.cy + ')'; });
   };
@@ -213,9 +212,8 @@ window.ItoToShi = (function() {
   var drawGameOver = function drawGameOver($gameover) {
     $gameover.enter().append('text')
       .attr('id', 'gameover')
-      .attr('x', function(d) { return d.x; })
-      .attr('y', function(d) { return d.y; })
       .text(function(d) { return d.text; });
+    // Movements
     $gameover.transition().duration(0)
       .attr('x', function(d) { return d.x; })
       .attr('y', function(d) { return d.y; })

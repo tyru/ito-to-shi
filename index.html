@@ -5,20 +5,14 @@
     <title>糸通し</title>
   </head>
   <body onload='ItoToShi.onLoad()'>
-    <!--
     <svg id='game'
          version="1.1"
          xmlns="http://www.w3.org/2000/svg"
          xmlns:xlink="http://www.w3.org/1999/xlink"
-         width="200" height="200" xml:space="preserve">
-      <rect x="0" y="0" fill="gray" width="10" height="70" />
-      <rect x="2" y="1" fill="white" width="6" height="20" />
-    </svg>
+         width="200" height="200" xml:space="preserve"></svg>
 
-    <button onclick='doRequestFullscreen(document.getElementById("game"))'>フルスクリーン</button>
-    -->
-
-    <button onclick='ItoToShi.redraw([5,4,3,2,1])'>データセット変更</button>
+    <button onclick='ItoToShi.enableFullscreen(document.getElementById("game"))'>フルスクリーン</button>
+    <button onclick='ItoToShi.toggle()'>Start/Stop</button>
 
     <style>
       #game {
@@ -30,7 +24,19 @@
     <script src='d3-v3.5.17/d3.js'></script>
     <script type="text/javascript">
       window.ItoToShi = (function() {
-        var doRequestFullscreen = function doRequestFullscreen(elem) {
+        var needleGroupDS = [
+          {x: 0, y: 0},
+          {x: 50, y: 10}
+        ];
+        var needleDS = [
+          {x: 0, y: 0, fill: 'gray', width: 10, height: 70},
+          {x: 2, y: 1, fill: 'white', width: 6, height: 20}
+        ];
+        var theTimer = null;
+        var INTERVAL = 1000.0 / 30.0;
+        var $svg;
+
+        var enableFullscreen = function enableFullscreen(elem) {
           if (elem.requestFullscreen) {
             elem.requestFullscreen();
           } else if (elem.msRequestFullscreen) {
@@ -41,24 +47,61 @@
             elem.webkitRequestFullscreen();
           }
         };
-        var selections = function selections() {
-          return d3.select("body").selectAll("p");
-        };
-        var redraw = function redraw(dataset) {
-          selections()
-            .data(dataset)
-            .enter()
-            .append("p")
-            .text("新しいパラグラフ！");
-        };
+
         var onLoad = function onLoad() {
-          var dataset = [1,2,4,5];
-          redraw(dataset);
+          $svg = d3.select("body").select("svg");
+          drawNeedles(needles());
+        };
+
+        // Need to access to moving objects via D3 API.
+        // (Saving to '$needles' variable leaves old objects in display...)
+        var needles = function needles() {
+          return $svg.selectAll('g').data(needleGroupDS);
+        };
+
+        var moveNeedles = function moveNeedles() {
+          needleGroupDS = needleGroupDS.map(function(el) {
+            el.x++;
+            el.y++;
+            return el;
+          });
+        };
+
+        var drawNeedles = function drawNeedles($needles) {
+          // Make needles
+          $needles.enter().append('g')
+            .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; })
+            .selectAll('rect').data(needleDS).enter().append('rect')
+            .attr('x', function(d) { return d.x; })
+            .attr('y', function(d) { return d.y; })
+            .attr('fill', function(d) { return d.fill; })
+            .attr('width', function(d) { return d.width; })
+            .attr('height', function(d) { return d.height; })
+          // Animation
+          $needles.transition().duration(INTERVAL)
+            .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; })
+        };
+
+        var toggle = function toggle() {
+          if (theTimer) {
+            clearInterval(theTimer);
+            theTimer = null;
+          } else {
+            theTimer = setInterval(update, INTERVAL);
+          }
+        };
+
+        var update = function update() {
+          console.log('update() enter');
+          // Move
+          moveNeedles();
+          // Update display
+          drawNeedles(needles());
         };
 
         return {
-          doRequestFullscreen: doRequestFullscreen,
-          redraw: redraw,
+          enableFullscreen: enableFullscreen,
+          toggle: toggle,
           onLoad: onLoad
         };
       })();

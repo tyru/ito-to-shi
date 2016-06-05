@@ -18,6 +18,8 @@
     <button onclick='doRequestFullscreen(document.getElementById("game"))'>フルスクリーン</button>
     -->
 
+    <button onclick='ItoToShi.redraw([5,4,3,2,1])'>データセット変更</button>
+
     <style>
       #game {
         display: block;
@@ -28,7 +30,7 @@
     <script src='d3-v3.5.17/d3.js'></script>
     <script type="text/javascript">
       window.ItoToShi = (function() {
-        function doRequestFullscreen(elem) {
+        var doRequestFullscreen = function doRequestFullscreen(elem) {
           if (elem.requestFullscreen) {
             elem.requestFullscreen();
           } else if (elem.msRequestFullscreen) {
@@ -38,17 +40,25 @@
           } else if (elem.webkitRequestFullscreen) {
             elem.webkitRequestFullscreen();
           }
-        }
-        function onLoad() {
-          var dataset = [1,2,4,5];
-          d3.select("body").selectAll("p")
+        };
+        var selections = function selections() {
+          return d3.select("body").selectAll("p");
+        };
+        var redraw = function redraw(dataset) {
+          selections()
             .data(dataset)
             .enter()
             .append("p")
             .text("新しいパラグラフ！");
-        }
+        };
+        var onLoad = function onLoad() {
+          var dataset = [1,2,4,5];
+          redraw(dataset);
+        };
 
         return {
+          doRequestFullscreen: doRequestFullscreen,
+          redraw: redraw,
           onLoad: onLoad
         };
       })();

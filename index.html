@@ -36,7 +36,7 @@
           {x: 0, y: 0, fill: 'gray', width: 10, height: 70},
           {x: 2, y: 1, fill: 'white', width: 6, height: 20}
         ];
-        var needleDx = 10;
+        var needleDx = 5;
         var needleGapX = 20;
         var needleResetX = -20;
         var theTimer = null;
@@ -69,17 +69,23 @@
         };
 
         var moveNeedles = function moveNeedles() {
+          var animate = true;
           needleGroupDS = needleGroupDS.map(function(el) {
             if (el.x + needleDx >= svgDS.width + needleGapX) {
               el.x = needleResetX;
+              animate = false;
             } else {
               el.x += needleDx;
             }
             return el;
           });
+          return {
+            animate: animate
+          };
         };
 
-        var drawNeedles = function drawNeedles($needles) {
+        var drawNeedles = function drawNeedles($needles, ctx) {
+          ctx = ctx || {};
           // Make needles
           $needles.enter().append('g')
             .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; })
@@ -90,8 +96,8 @@
             .attr('width', function(d) { return d.width; })
             .attr('height', function(d) { return d.height; })
           // Animation
-          $needles.transition().duration(INTERVAL)
-            .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; })
+          $needles.transition().duration(ctx.animate ? INTERVAL : 0)
+            .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; });
         };
 
         var toggle = function toggle() {
@@ -106,9 +112,9 @@
         var update = function update() {
           console.log('update() enter');
           // Move
-          moveNeedles();
+          var ctx = moveNeedles();
           // Update display
-          drawNeedles(needles());
+          drawNeedles(needles(), ctx);
         };
 
         return {

@@ -11,7 +11,8 @@ window.ItoToShi = (function() {
   //   * @media (min-width: @screen-lg-min) { ... }
   // TODO: Generate needles from random data
   // TODO: Auto full screen on load (#fullscreen)
-  // TODO: Auto start on load (#fullscreen)
+  // TODO: More effects (explosion on GAME OVER, Level up, ...)
+  // TODO: Better (background|needle)' images
 
   var INTERVAL = 1000.0 / 30.0;
   var ST_INITIAL = 1;

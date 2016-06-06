@@ -1,4 +1,5 @@
 window.ItoToShi = (function() {
+  'use strict';
 
   // TODO: Support the all following screen widths like the ones defined by Bootstrap
   // * Extra small devices (phones, less than 768px)

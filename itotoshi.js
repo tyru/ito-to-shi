@@ -187,10 +187,8 @@ window.ItoToShi = (function() {
     // Update
     $needles.each(function(d) {
       // http://stackoverflow.com/questions/26903355/how-to-cancel-scheduled-transition-in-d3
-      (d.animate ?
         d3.select(this)
-          .transition().duration(INTERVAL) :
-        d3.select(this))
+          .transition().duration(d.animate ? INTERVAL : 0)
           .attr('transform', 'translate(' + d.x + ',' + d.y + ')');
     });
 

@@ -69,27 +69,42 @@ window.ItoToShi = (function() {
     }
   };
 
+  var randNumBetween = function randNumBetween(start, end) {
+    return Math.random() * (end - start) + start;
+  };
   var getInitVars = function getInitVars() {
     var svgDS = {
       width: 320,
       height: 320
     };
     var scoreMmMap = [
-      [0, 100],
-      [10, 90],
-      [20, 80],
-      [30, 70],
-      [40, 60],
-      [50, 50],
-      [60, 40],
-      [70, 30]
+      // [least score, hole height (mm), distanceX]
+      [0, 100, 200],
+      [10, 90, 180],
+      [20, 80, 160],
+      [30, 70, 140],
+      [40, 60, 140],
+      [50, 50, 140]
     ];
+    // Generate needle objects.
+    var needleGroupDS = [];
+    // To place the next needle when hole height (mm) is changed,
+    // We must have enough number of needles on screen (even if invisible).
+    var needleNum = svgDS.width / scoreMmMap[0][2] + 2;
+    // First object is placed at x=200
+    var objX = 200;
+    for (var i = 0; i < needleNum; i++) {
+      needleGroupDS.push({
+        x: objX,
+        y: randNumBetween(0, svgDS.height - scoreMmMap[0][1]),
+        passed: false
+      });
+      objX += scoreMmMap[0][2];
+    }
+
     return {
       svgDS: svgDS,
-      needleGroupDS: [ // <g>
-        {x: 100, y: 0, passed: false},
-        {x: 150, y: 10, passed: false}
-      ],
+      needleGroupDS: needleGroupDS, // <g>
       needleDS: [  // <rect>
         {x: 0, y: 0, fill: 'gray', width: 10, height: 999, animate: true},
         {x: 2, y: NEEDLE_WHOLE_DY, fill: 'white', width: 6,
@@ -109,7 +124,6 @@ window.ItoToShi = (function() {
       }],
       needleDx: -5,
       needleGapX: -10,
-      needleResetX: svgDS.width + 10,
       Da: 1,
       minA: -10,
       maxA: 10,
@@ -183,17 +197,26 @@ window.ItoToShi = (function() {
   };
 
   var moveNeedles = function moveNeedles() {
-    ctx.needleGroupDS = ctx.needleGroupDS.map(function(d) {
+    var willMove = [];
+    var maxRightX = -1;
+    ctx.needleGroupDS = ctx.needleGroupDS.map(function(d, i) {
       if (d.x + ctx.needleDx < ctx.needleGapX) {
-        d.x = ctx.needleResetX;
-        d.animate = false;
-        d.passed = false;
+        willMove.push(i);
       } else {
         d.x += ctx.needleDx;
         d.animate = true;
       }
+      maxRightX = Math.max(maxRightX, d.x);
       return d;
     });
+    willMove.map(function (i) {
+      var d = ctx.needleGroupDS[i];
+      d.x = maxRightX + getDistanceXByLevel(ctx.level); // FIXME: Too late!
+      var mm = getMmByLevel(ctx.level);
+      d.y = randNumBetween(0, ctx.svgDS.height - mm);
+      d.animate = false;
+      d.passed = false;
+    })
   };
 
   var drawNeedles = function drawNeedles($needles) {
@@ -303,6 +326,10 @@ window.ItoToShi = (function() {
   // Actually returns 'px' number, not 'mm' ... ;)
   var getMmByLevel = function getMmByLevel(level) {
     return ctx.scoreMmMap[level][1];
+  }
+
+  var getDistanceXByLevel = function getDistanceXByLevel(level) {
+    return ctx.scoreMmMap[level][2];
   }
 
   var drawStatusText = function drawStatusText($statusText) {

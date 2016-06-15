@@ -72,6 +72,13 @@ window.ItoToShi = (function() {
   var randNumBetween = function randNumBetween(start, end) {
     return Math.random() * (end - start) + start;
   };
+
+  var assert = function assert(cond, msg) {
+    if (!cond) {
+      throw new Error('Assertion Error' + (msg ? ': ' + msg : ''));
+    }
+  };
+
   var getInitVars = function getInitVars() {
     var svgDS = {
       width: 320,
@@ -90,7 +97,7 @@ window.ItoToShi = (function() {
     var needleGroupDS = [];
     // To place the next needle when hole height (mm) is changed,
     // We must have enough number of needles on screen (even if invisible).
-    var needleNum = svgDS.width / scoreMmMap[0][2] + 2;
+    var needleNum = Math.floor(svgDS.width / scoreMmMap[0][2] + 2);
     // First object is placed at x=200
     var objX = 200;
     for (var i = 0; i < needleNum; i++) {
@@ -197,11 +204,12 @@ window.ItoToShi = (function() {
   };
 
   var moveNeedles = function moveNeedles() {
-    var willMove = [];
+    var willMove = -1;
     var maxRightX = -1;
     ctx.needleGroupDS = ctx.needleGroupDS.map(function(d, i) {
       if (d.x + ctx.needleDx < ctx.needleGapX) {
-        willMove.push(i);
+        assert(willMove === -1, '0 <= moving needles <= 1');
+        willMove = i;
       } else {
         d.x += ctx.needleDx;
         d.animate = true;
@@ -209,14 +217,36 @@ window.ItoToShi = (function() {
       maxRightX = Math.max(maxRightX, d.x);
       return d;
     });
-    willMove.map(function (i) {
-      var d = ctx.needleGroupDS[i];
-      d.x = maxRightX + getDistanceXByLevel(ctx.level); // FIXME: Too late!
-      var mm = getMmByLevel(ctx.level);
+    if (willMove >= 0) {
+      // Determine if I must calculate the distanceX by next level or current level.
+      var level = getCurrentScore() + ctx.needleGroupDS.length >= getScoreByLevel(ctx.level + 1) ?
+                    ctx.level + 1 : ctx.level;
+      var distanceX = getDistanceXByLevel(level);
+      var mm = getMmByLevel(level);
+      // Move the needle to the right.
+      var d = ctx.needleGroupDS[willMove];
+      d.x = maxRightX + distanceX;
       d.y = randNumBetween(0, ctx.svgDS.height - mm);
       d.animate = false;
       d.passed = false;
-    })
+      // Add a new needle if necessary.
+      var nextNeedleNum = Math.floor(ctx.svgDS.width / getDistanceXByLevel(ctx.level + 1) + 2);
+      assert(nextNeedleNum >= ctx.needleGroupDS.length,
+             'Lv.UP must not cause getMmByLevel() to be smaller number');
+      if (level > ctx.level && nextNeedleNum > ctx.needleGroupDS.length) {
+        // Re-calculate the necessary number of needles.
+        nextNeedleNum = nextNeedleNum - ctx.needleGroupDS.length;
+        var objX = d.x + distanceX;
+        for (var i = 0; i < nextNeedleNum; i++) {
+          ctx.needleGroupDS.push({
+            x: objX,
+            y: randNumBetween(0, ctx.svgDS.height - mm),
+            passed: false
+          });
+          objX += distanceX;
+        }
+      }
+    }
   };
 
   var drawNeedles = function drawNeedles($needles) {
@@ -314,7 +344,7 @@ window.ItoToShi = (function() {
   // score -> level -> mm
   var calcLevelByScore = function calcLevelByScore(score) {
     if (ctx.level + 1 < ctx.scoreMmMap.length) {
-      if (score >= ctx.scoreMmMap[ctx.level + 1][0]) {
+      if (score >= getScoreByLevel(ctx.level + 1)) {
         return ctx.level + 1;
       }
       return ctx.level;
@@ -323,14 +353,32 @@ window.ItoToShi = (function() {
     }
   };
 
-  // Actually returns 'px' number, not 'mm' ... ;)
-  var getMmByLevel = function getMmByLevel(level) {
-    return ctx.scoreMmMap[level][1];
-  }
+  // @returns Current score
+  var getCurrentScore = function getCurrentScore() {
+    return ctx.statusTextDS[0].score;
+  };
 
+  // @returns Least score
+  // @seealso ctx.scoreMmMap
+  var getScoreByLevel = function getScoreByLevel(level) {
+    level = Math.min(level, ctx.scoreMmMap.length - 1);
+    return ctx.scoreMmMap[level][0];
+  };
+
+  // @returns Hole height (mm)
+  //          NOTE: Actually returns 'px' number, not 'mm' ... ;)
+  // @seealso ctx.scoreMmMap
+  var getMmByLevel = function getMmByLevel(level) {
+    level = Math.min(level, ctx.scoreMmMap.length - 1);
+    return ctx.scoreMmMap[level][1];
+  };
+
+  // @returns distanceX
+  // @seealso ctx.scoreMmMap
   var getDistanceXByLevel = function getDistanceXByLevel(level) {
+    level = Math.min(level, ctx.scoreMmMap.length - 1);
     return ctx.scoreMmMap[level][2];
-  }
+  };
 
   var drawStatusText = function drawStatusText($statusText) {
     // Enter
@@ -361,7 +409,7 @@ window.ItoToShi = (function() {
       if (thread.cx >= d.x) {
         if (fromY <= thread.cy - thread.r && thread.cy + thread.r <= toY) { // Passed
           statusText.score++;
-          ctx.level = calcLevelByScore(statusText.score);
+          ctx.level = calcLevelByScore(statusText.score); // May Lv. Up
           ctx.needleDS[1].height = getMmByLevel(ctx.level);
           d.passed = true;
         } else {  // Failed

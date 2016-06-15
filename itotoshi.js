@@ -25,6 +25,50 @@ window.ItoToShi = (function() {
   var $svg;
   var ctx;
 
+  var init = function init() {
+    // Draw variables
+    ctx = getInitVars();
+    // Draw initial screen
+    $svg = d3.select("body").select("svg")
+      .on('touchstart', setHovering)
+      .on('touchend', unsetHovering)
+      .on('keydown', setHovering)
+      .on('keyup', unsetHovering)
+      .on('mousedown', setHovering)
+      .on('mouseup', unsetHovering)
+      .attr('width', ctx.svgDS.width)
+      .attr('height', ctx.svgDS.height);
+    drawThread(getThread());
+    drawNeedles(getNeedles());
+    drawStatusText(getStatusText());
+    drawGameOver(getGameOver());
+  };
+
+  // Update screen. this function is called every frame.
+  //   before *1    result
+  //   false  false false
+  //   false  true  false
+  //   true   false false
+  //   true   true  true
+  // *1 moveThread(), detectCollision()
+  var update = function update() {
+    console.log('update() enter');
+    // Move objects
+    var doContinue = moveThread();
+    moveNeedles();
+    doContinue = detectCollision() && doContinue;
+    // Update screen
+    drawThread(getThread());
+    drawNeedles(getNeedles());
+    drawStatusText(getStatusText());
+    // GAME OVER
+    if (!doContinue) {
+      moveGameOver();
+      drawGameOver(getGameOver());
+      setGameOver();
+    }
+  };
+
   var getInitVars = function getInitVars() {
     var svgDS = {
       width: 320,
@@ -116,25 +160,6 @@ window.ItoToShi = (function() {
 
   var unsetHovering = function() {
     ctx.hovering = false;
-  };
-
-  var init = function init() {
-    // Draw variables
-    ctx = getInitVars();
-    // Draw initial screen
-    $svg = d3.select("body").select("svg")
-      .on('touchstart', setHovering)
-      .on('touchend', unsetHovering)
-      .on('keydown', setHovering)
-      .on('keyup', unsetHovering)
-      .on('mousedown', setHovering)
-      .on('mouseup', unsetHovering)
-      .attr('width', ctx.svgDS.width)
-      .attr('height', ctx.svgDS.height);
-    drawThread(getThread());
-    drawNeedles(getNeedles());
-    drawStatusText(getStatusText());
-    drawGameOver(getGameOver());
   };
 
   var enableFullscreen = function enableFullscreen(elem) {
@@ -318,32 +343,6 @@ window.ItoToShi = (function() {
       }
     });
     return doContinue;
-  };
-
-  // ======================= Collision detection =======================
-
-  //   before *1    result
-  //   false  false false
-  //   false  true  false
-  //   true   false false
-  //   true   true  true
-  // *1 moveThread(), detectCollision()
-  var update = function update() {
-    console.log('update() enter');
-    // Move objects
-    var doContinue = moveThread();
-    moveNeedles();
-    doContinue = detectCollision() && doContinue;
-    // Update screen
-    drawThread(getThread());
-    drawNeedles(getNeedles());
-    drawStatusText(getStatusText());
-    // GAME OVER
-    if (!doContinue) {
-      moveGameOver();
-      drawGameOver(getGameOver());
-      setGameOver();
-    }
   };
 
   return {

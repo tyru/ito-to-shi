@@ -273,6 +273,9 @@ window.ItoToShi = (function() {
     $needleChildren
       .transition().duration(INTERVAL * 3)
       .attr('height', function (d) { return d.height; });
+
+    // Exit
+    $needles.exit().remove();
   };
 
   // ======================= Thread =======================

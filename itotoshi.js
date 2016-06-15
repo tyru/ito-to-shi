@@ -390,8 +390,9 @@ window.ItoToShi = (function() {
       .attr('font-size', function(d) { return d.fontSize; });
     // Update
     var mm = getMmByLevel(ctx.level);
+    var distanceX = getDistanceXByLevel(ctx.level);
     $statusText
-      .text(function(d) { return d.score + '本 針穴' + mm + 'mm'; });
+      .text(function(d) { return d.score + '本 針穴' + mm + 'mm 距離' + distanceX + 'm'; });
   };
 
   // ======================= Collision detection =======================

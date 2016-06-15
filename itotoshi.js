@@ -118,7 +118,7 @@ window.ItoToShi = (function() {
           height: scoreMmMap[0][1], animate: true}
       ],
       threadDS: [{  // <circle>
-        fill: 'red', cx: 10, cy: 10, r: 5, a: /*9.8*/ 1
+        fill: 'red', cx: 10, cy: 0, r: 5, a: /*9.8*/ 1
       }],
       statusTextDS: [{  // <text>
         x: 100, y: 12, fontSize: '12px', text: '',

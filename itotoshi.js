@@ -10,7 +10,6 @@ window.ItoToShi = (function() {
   //   * @media (min-width: @screen-md-min) { ... }
   // * Large devices (large desktops, 1200px and up)
   //   * @media (min-width: @screen-lg-min) { ... }
-  // TODO: Generate needles from random data
   // TODO: Auto full screen on load (#fullscreen)
   // TODO: More effects (explosion on GAME OVER, Level up, ...)
   // TODO: Better (background|needle)' images

@@ -14,6 +14,7 @@ window.ItoToShi = (function() {
   var $svg;
   var ctx;
   var screenDispatcher;
+  var selectedMode = '';
 
   var init = function init() {
     screenDispatcher = new ScreenDispatcher();
@@ -22,7 +23,7 @@ window.ItoToShi = (function() {
     screenDispatcher.register(SCR_RUNNING, new RunningScreen());
     screenDispatcher.register(SCR_GAMEOVER, new GameOverScreen());
 
-    ctx = getInitVars(HARD_MODE);
+    var svgDS = getSvgDS();
     $svg = d3.select("body").select("svg")
       .on('touchstart', screenDispatcher.touchStart)
       .on('touchend', screenDispatcher.touchEnd)
@@ -30,9 +31,10 @@ window.ItoToShi = (function() {
       .on('keyup', screenDispatcher.touchEnd)
       .on('mousedown', screenDispatcher.touchStart)
       .on('mouseup', screenDispatcher.touchEnd)
-      .attr('width', ctx.svgDS.width)
-      .attr('height', ctx.svgDS.height);
+      .attr('width', svgDS.width)
+      .attr('height', svgDS.height);
 
+    ctx = getInitVars(NORMAL_MODE);
     screenDispatcher.changeScreen(SCR_INITIAL);
   };
 
@@ -52,11 +54,15 @@ window.ItoToShi = (function() {
     return ctx.animateGlobal;
   };
 
-  var getInitVars = function getInitVars(mode) {
-    var svgDS = {
+  var getSvgDS = function getSvgDS() {
+    return {
       width: 320,
       height: 320
     };
+  };
+
+  var getInitVars = function getInitVars(mode) {
+    var svgDS = getSvgDS();
     var scoreMmMap, needleDx, threadDy;
     if (mode === EASY_MODE) {
       scoreMmMap = [
@@ -128,7 +134,8 @@ window.ItoToShi = (function() {
       scoreMmMap: scoreMmMap,
       level: 0,
       gameOverDS: [],    // <text>
-      selectModeScreenDS: [],    // TODO: <g>
+      selectModeScreenDS: [],    // <g>
+      selectModeButtonsDS: [],    // <g>
       pressStartDS: [],    // <text>
       needleDx: needleDx,
       needleGapX: -10,
@@ -191,11 +198,11 @@ window.ItoToShi = (function() {
 
     this.touchStart = function touchStart() {
       d3.event.preventDefault();    // Don't propagate click event to outside <svg> tag
-      screens[currentScreenId].touchStart();
+      screens[currentScreenId].touchStart.apply(this, arguments);
     };
 
     this.touchEnd = function touchEnd() {
-      screens[currentScreenId].touchEnd();
+      screens[currentScreenId].touchEnd.apply(this, arguments);
     };
   };
 
@@ -230,24 +237,23 @@ window.ItoToShi = (function() {
       screenDispatcher.changeScreen(SCR_SELECT_MODE);
     };
     this.touchEnd = function touchEnd() {
-      ctx.hovering = false;
     };
   };
 
   var SelectModeScreen = function SelectModeScreen() {
-    this.update = function update() {
-      // TODO
-      screenDispatcher.changeScreen(SCR_RUNNING);
-    };
-    this.getInterval = function getInterval() {
-      return THIRTY_FPS;
+    this.init = function init() {
+      makeSelectModeScreen();
+      drawSelectModeScreen(getSelectModeScreen());
     };
     this.touchStart = function touchStart() {
-      // TODO
-      screenDispatcher.changeScreen(SCR_RUNNING);
+      if (selectedMode !== '') {
+        ctx = getInitVars(selectedMode);
+        clearSelectModeScreen(getSelectModeScreen());
+        drawSelectModeScreen(getSelectModeScreen());
+        screenDispatcher.changeScreen(SCR_RUNNING);
+      }
     };
     this.touchEnd = function touchEnd() {
-      ctx.hovering = false;
     };
   };
 
@@ -296,12 +302,11 @@ window.ItoToShi = (function() {
       drawGameOver(getGameOver());
     };
     this.touchStart = function touchStart() {
-      init();
+      ctx = getInitVars(selectedMode);
       drawGameOver(getGameOver());
       screenDispatcher.changeScreen(SCR_RUNNING);
     };
     this.touchEnd = function touchEnd() {
-      ctx.hovering = false;
     };
   };
 
@@ -343,21 +348,82 @@ window.ItoToShi = (function() {
     return $svg.selectAll('.selectModeScreen').data(ctx.selectModeScreenDS);
   };
 
+  var makeSelectModeScreen = function makeSelectModeScreen() {
+    ctx.selectModeScreenDS = [{
+      x: 0, y: 0, fill: 'black', width: ctx.svgDS.width, height: ctx.svgDS.height
+    }];
+    ctx.selectModeButtonsDS = [
+      {
+        rect: {x: 40, y: 30, fill: 'green', width: 110, height: 70},
+        text: {x: 60, y: 70, fontSize: '24px', text: 'EASY', fill: 'white'}
+      },
+      {
+        rect: {x: 180, y: 30, fill: 'blue', width: 110, height: 70},
+        text: {x: 190, y: 70, fontSize: '24px', text: 'NORMAL', fill: 'white'}
+      },
+      {
+        rect: {x: 40, y: 130, fill: 'red', width: 110, height: 70},
+        text: {x: 60, y: 170, fontSize: '24px', text: 'HARD', fill: 'white'}
+      },
+      {
+        rect: {x: 180, y: 130, fill: 'purple', width: 110, height: 70},
+        text: {x: 190, y: 170, fontSize: '24px', text: 'LUNATIC', fill: 'white'}
+      }
+    ];
+  };
+
+  var clearSelectModeScreen = function clearSelectModeScreen() {
+    ctx.selectModeScreenDS = [];
+    ctx.selectModeButtonsDS = [];
+  };
+
   var drawSelectModeScreen = function drawSelectModeScreen($selectModeScreen) {
     // Enter
-    $selectModeScreen.enter().append('g')
-      .attr('class', 'selectModeScreen');
+    $selectModeScreen.enter()
+      .append('g')
+        .attr('class', 'selectModeScreen')
+      .append('rect')
+        .attr('x', function(d) { return 0; })
+        .attr('y', function(d) { return 0; })
+        .attr('fill', function(d) { return d.fill; })
+        .attr('width', function(d) { return d.width; })
+        .attr('height', function(d) { return d.height; })
 
-    var $buttons = $selectModeScreen.selectAll('rect').data(ctx.selectModeButtonsDS);
+    var selectMode = function() {
+      var mode = d3.select(this).attr('data-mode');
+      if (mode !== '') selectedMode = mode;
+    };
+    var $buttons = $selectModeScreen
+                   .selectAll('.selectModeButtonsDS')
+                   .data(ctx.selectModeButtonsDS)
     $buttons
-      .enter().append('rect')
-      .attr('x', function(d) { return d.x; })
-      .attr('y', function(d) { return d.y; })
-      .attr('fill', function(d) { return d.fill; })
-      .attr('width', function(d) { return d.width; });
+      .enter()
+      .append('rect')
+        .attr('class', 'selectModeButtonsDS')
+        .attr('data-mode', function(d) { return d.text.text; })
+        .attr('x', function(d) { return d.rect.x; })
+        .attr('y', function(d) { return d.rect.y; })
+        .attr('fill', function(d) { return d.rect.fill; })
+        .attr('width', function(d) { return d.rect.width; })
+        .attr('height', function(d) { return d.rect.height; })
+        .on('touchstart', selectMode)
+        .on('mousedown', selectMode)
+    $buttons
+      .enter()
+      .append('text')
+        .attr('class', 'disable-select')
+        .attr('data-mode', function(d) { return d.text.text; })
+        .attr('x', function(d) { return d.text.x; })
+        .attr('y', function(d) { return d.text.y; })
+        .attr('fill', function(d) { return d.text.fill; })
+        .attr('font-size', function(d) { return d.text.fontSize; })
+        .text(function(d) { return d.text.text; })
+        .on('touchstart', selectMode)
+        .on('mousedown', selectMode)
 
     // Exit
     $selectModeScreen.exit().remove();
+    $buttons.exit().remove();
   };
 
   // ======================= Needles =======================

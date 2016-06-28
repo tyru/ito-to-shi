@@ -83,8 +83,8 @@ window.ItoToShi = (function() {
     // To place the next needle when hole height (mm) is changed,
     // We must have enough number of needles on screen (even if invisible).
     var needleNum = Math.floor(svgDS.width / scoreMmMap[0][2] + 2);
-    // First object is placed at x=200
-    var objX = 200;
+    // First object is placed at 'svgDS.width'.
+    var objX = svgDS.width;
     for (var i = 0; i < needleNum; i++) {
       needleGroupDS.push({
         x: objX,
@@ -103,7 +103,7 @@ window.ItoToShi = (function() {
           height: scoreMmMap[0][1], animate: true}
       ],
       threadDS: [{  // <circle>
-        fill: 'red', cx: 10, cy: 0, r: 5, a: /*9.8*/ 1
+        fill: 'red', cx: svgDS.width * 0.33, cy: 0, r: 5, a: /*9.8*/ 1
       }],
       statusTextDS: [{  // <text>
         x: 100, y: 12, fontSize: '12px', text: '',
@@ -288,8 +288,8 @@ window.ItoToShi = (function() {
     // Enter
     $thread.enter().append('circle')
       .attr('class', 'thread')
-      .attr('cx', function(d) { return d.cx; })
-      .attr('cy', function(d) { return d.cy; })
+      .attr('cx', function(d) { return 0; })
+      .attr('cy', function(d) { return 0; })
       .attr('r', function(d) { return d.r; })
       .attr('fill', function(d) { return d.fill; });
     // Update

@@ -129,6 +129,7 @@ window.ItoToShi = (function() {
       level: 0,
       gameOverDS: [],    // <text>
       selectModeScreenDS: [],    // TODO: <g>
+      pressStartDS: [],    // <text>
       needleDx: needleDx,
       needleGapX: -10,
       Da: threadDy,
@@ -204,11 +205,28 @@ window.ItoToShi = (function() {
       makeNeedles();
       drawNeedles(getNeedles());
       drawStatusText(getStatusText());
+
+      // Draw at hidden point to get bbox width & height.
+      ctx.pressStartDS = [{  // <text>
+        x: -99, y: -99, fontSize: '24px', text: 'PRESS START',
+        fill: 'black'
+      }];
+      drawPressStart(getPressStart());
+      // Move to visible point
+      movePressStart();
+      drawPressStart(getPressStart());
+    };
+    var blink = true;
+    this.update = function update() {
+      blink = !blink;
+
     };
     this.getInterval = function getInterval() {
       return 500;
     };
     this.touchStart = function touchStart() {
+      ctx.pressStartDS = [];
+      drawPressStart(getPressStart());
       screenDispatcher.changeScreen(SCR_SELECT_MODE);
     };
     this.touchEnd = function touchEnd() {
@@ -285,6 +303,37 @@ window.ItoToShi = (function() {
     this.touchEnd = function touchEnd() {
       ctx.hovering = false;
     };
+  };
+
+  // ======================= (Initial screen) "PRESS START" text =======================
+  // * Get / Move / Draw "PRESS START" text object
+
+  var getPressStart = function getPressStart() {
+    return $svg.selectAll('#pressStart').data(ctx.pressStartDS);
+  };
+
+  var movePressStart = function movePressStart() {
+    var dataset = ctx.pressStartDS[0];
+    var bbox = document.getElementById('pressStart').getBBox();
+    dataset.x = ctx.svgDS.width / 2 - bbox.width / 2;
+    dataset.y = ctx.svgDS.height / 2 - bbox.height / 2;
+    ctx.pressStartDS = [dataset];
+  };
+
+  var drawPressStart = function drawPressStart($pressStart) {
+    // Enter
+    $pressStart.enter().append('text')
+      .attr('id', 'pressStart')
+      .attr('class', 'disable-select')
+      .attr('font-size', function(d) { return d.fontSize; })
+      .text(function(d) { return d.text; });
+    // Update
+    $pressStart
+      .attr('x', function(d) { return d.x; })
+      .attr('y', function(d) { return d.y; })
+      .attr('fill', function(d) { return d.fill; })
+    // Exit
+    $pressStart.exit().remove();
   };
 
   // ======================= Select mode screen =======================

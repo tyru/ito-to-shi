@@ -1,57 +1,41 @@
 window.ItoToShi = (function() {
   'use strict';
 
-  var INTERVAL = 1000.0 / 30.0;
-  var ST_INITIAL = 1;
-  var ST_RUNNING = 2;
-  var ST_STOPPED = 4;
-  var ST_GAMEOVER = 8;
+  var THIRTY_FPS = 1000.0 / 30.0;
+  var SCR_INITIAL = 1;
+  var SCR_SELECT_MODE = 2;
+  var SCR_RUNNING = 3;
+  var SCR_GAMEOVER = 4;
+  var EASY_MODE = 'EASY';
+  var NORMAL_MODE = 'NORMAL';
+  var HARD_MODE = 'HARD';
+  var LUNATIC_MODE = 'LUNATIC';
   var NEEDLE_WHOLE_DY = 1;
   var $svg;
   var ctx;
+  var screenDispatcher;
+  var selectedMode = '';
 
   var init = function init() {
-    // Draw variables
-    ctx = getInitVars();
-    // Draw initial screen
-    $svg = d3.select("body").select("svg")
-      .on('touchstart', setHovering)
-      .on('touchend', unsetHovering)
-      .on('keydown', setHovering)
-      .on('keyup', unsetHovering)
-      .on('mousedown', setHovering)
-      .on('mouseup', unsetHovering)
-      .attr('width', ctx.svgDS.width)
-      .attr('height', ctx.svgDS.height);
-    drawThread(getThread());
-    drawNeedles(getNeedles());
-    drawStatusText(getStatusText());
-    drawGameOver(getGameOver());
-  };
+    screenDispatcher = new ScreenDispatcher();
+    screenDispatcher.register(SCR_INITIAL, new InitialScreen());
+    screenDispatcher.register(SCR_SELECT_MODE, new SelectModeScreen());
+    screenDispatcher.register(SCR_RUNNING, new RunningScreen());
+    screenDispatcher.register(SCR_GAMEOVER, new GameOverScreen());
 
-  // Update screen. this function is called every frame.
-  //   before *1    result
-  //   false  false false
-  //   false  true  false
-  //   true   false false
-  //   true   true  true
-  // *1 moveThread(), detectCollision()
-  var update = function update() {
-    console.log('update() enter');
-    // Move objects
-    var doContinue = moveThread();
-    moveNeedles();
-    doContinue = detectCollision() && doContinue;
-    // Update screen
-    drawThread(getThread());
-    drawNeedles(getNeedles());
-    drawStatusText(getStatusText());
-    // GAME OVER
-    if (!doContinue) {
-      moveGameOver();
-      drawGameOver(getGameOver());
-      setGameOver();
-    }
+    var svgDS = getSvgDS();
+    $svg = d3.select("body").select("svg")
+      .on('touchstart', screenDispatcher.touchStart)
+      .on('touchend', screenDispatcher.touchEnd)
+      .on('keydown', screenDispatcher.touchStart)
+      .on('keyup', screenDispatcher.touchEnd)
+      .on('mousedown', screenDispatcher.touchStart)
+      .on('mouseup', screenDispatcher.touchEnd)
+      .attr('width', svgDS.width)
+      .attr('height', svgDS.height);
+
+    ctx = getInitVars(NORMAL_MODE);
+    screenDispatcher.changeScreen(SCR_INITIAL);
   };
 
   var randNumBetween = function randNumBetween(start, end) {
@@ -64,108 +48,105 @@ window.ItoToShi = (function() {
     }
   };
 
-  var getInitVars = function getInitVars() {
-    var svgDS = {
+  var shouldAnimate = function shouldAnimate(dataset) {
+    if (dataset && !dataset.animate)
+      return false;
+    return ctx.animateGlobal;
+  };
+
+  var getSvgDS = function getSvgDS() {
+    return {
       width: 320,
       height: 320
     };
-    var scoreMmMap = [
-      // [least score, hole height (mm), distanceX]
-      [0, 100, 200],
-      [10, 90, 180],
-      [20, 80, 160],
-      [30, 70, 140],
-      [40, 60, 140],
-      [50, 50, 140]
-    ];
-    // Generate needle objects.
-    var needleGroupDS = [];
-    // To place the next needle when hole height (mm) is changed,
-    // We must have enough number of needles on screen (even if invisible).
-    var needleNum = Math.floor(svgDS.width / scoreMmMap[0][2] + 2);
-    // First object is placed at x=200
-    var objX = 200;
-    for (var i = 0; i < needleNum; i++) {
-      needleGroupDS.push({
-        x: objX,
-        y: randNumBetween(0, svgDS.height - scoreMmMap[0][1]),
-        passed: false
-      });
-      objX += scoreMmMap[0][2];
+  };
+
+  var getInitVars = function getInitVars(mode) {
+    var svgDS = getSvgDS();
+    var scoreMmMap, needleDx, threadDy;
+    if (mode === EASY_MODE) {
+      scoreMmMap = [
+        // [least score, hole height (mm), distanceX]
+        [0  , 150, 320],
+        [10 , 140, 300],
+        [20 , 120, 280],
+        [40 , 110, 260],
+        [80 , 100, 240],
+        [100,  90, 220]
+      ];
+      needleDx = -5;
+      threadDy = 1;
+    } else if (mode === NORMAL_MODE) {
+      scoreMmMap = [
+        // [least score, hole height (mm), distanceX]
+        [0  , 120, 260],
+        [10 , 110, 240],
+        [20 , 100, 220],
+        [40 ,  90, 200],
+        [80 ,  80, 180],
+        [100,  70, 160]
+      ];
+      needleDx = -5;
+      threadDy = 1;
+    } else if (mode === HARD_MODE) {
+      scoreMmMap = [
+        // [least score, hole height (mm), distanceX]
+        [0  , 100, 200],
+        [10 ,  90, 180],
+        [20 ,  80, 160],
+        [40 ,  70, 140],
+        [80 ,  60, 140],
+        [100,  50, 140]
+      ];
+      needleDx = -5;
+      threadDy = 1;
+    } else if (mode === LUNATIC_MODE) {
+      scoreMmMap = [
+        // [least score, hole height (mm), distanceX]
+        [0  , 100, 200],
+        [10 ,  90, 180],
+        [20 ,  80, 160],
+        [40 ,  70, 140],
+        [80 ,  60, 140],
+        [100,  50, 140]
+      ];
+      needleDx = -7.5;
+      threadDy = 1.5;
+    } else {
+      throw 'unknown mode!';
     }
 
     return {
       svgDS: svgDS,
-      needleGroupDS: needleGroupDS, // <g>
+      needleGroupDS: [], // <g>
       needleDS: [  // <rect>
         {x: 0, y: 0, fill: 'gray', width: 10, height: 999, animate: true},
         {x: 2, y: NEEDLE_WHOLE_DY, fill: 'white', width: 6,
           height: scoreMmMap[0][1], animate: true}
       ],
       threadDS: [{  // <circle>
-        fill: 'red', cx: 10, cy: 0, r: 5, a: /*9.8*/ 1
+        fill: 'red', cx: svgDS.width * 0.33, cy: svgDS.height * 0.33, r: 5, a: 1
       }],
       statusTextDS: [{  // <text>
-        x: 100, y: 12, fontSize: '12px', text: '',
-        score: 0
+        x: 60, y: 12, fontSize: '12px', text: '',
+        score: 0, mode: mode
       }],
       scoreMmMap: scoreMmMap,
       level: 0,
-      gameOverDS: [{  // <text>
-        x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
-      }],
-      needleDx: -5,
+      gameOverDS: [],    // <text>
+      selectModeScreenDS: [],    // <g>
+      selectModeButtonsDS: [],    // <g>
+      pressStartDS: [],    // <text>
+      needleDx: needleDx,
       needleGapX: -10,
-      Da: 1,
+      Da: threadDy,
       minA: -10,
       maxA: 10,
       hovering: false,
       threadGameOverGapY: 10,
-      isGameOver: false,
-      isInitial: true,
-      theTimer: null
+      theTimer: null,
+      animateGlobal: true
     };
-  };
-
-  var getState = function getState() {
-    if (ctx.isGameOver) {
-      return ST_GAMEOVER;
-    } else if (ctx.isInitial) {
-      return ST_INITIAL;
-    } else if (!ctx.theTimer) {
-      return ST_STOPPED;
-    } else {
-      return ST_RUNNING;
-    }
-  };
-
-  var setGameOver = function setGameOver() {
-    clearInterval(ctx.theTimer);
-    ctx.theTimer = null;
-    ctx.isGameOver = true;
-  };
-
-  // 1. Initial -> (unset isInitial) -> Running
-  // 2. Running -> (set hovering) -> Running
-  // 3. Stopped -> Running
-  // 4. GameOver -> Initial -> (unset isInitial) -> Running
-  var setHovering = function() {
-    d3.event.preventDefault();    // Don't propagate click event to outside <svg> tag
-    var state = getState();
-    if (state & (ST_INITIAL | ST_STOPPED)) {
-      ctx.isInitial = false;
-      ctx.theTimer = setInterval(update, INTERVAL);
-    } else if (state & ST_RUNNING) {
-      ctx.hovering = true;
-    } else if (state & ST_GAMEOVER) {
-      init();
-      ctx.isInitial = false;
-      ctx.theTimer = setInterval(update, INTERVAL);
-    }
-  };
-
-  var unsetHovering = function() {
-    ctx.hovering = false;
   };
 
   var enableFullscreen = function enableFullscreen(elem) {
@@ -180,7 +161,292 @@ window.ItoToShi = (function() {
     }
   };
 
+  // ======================= ScreenDispatcher =======================
+  // * Dispatches *Screen instances' methods.
+  // * Changes current screen ID.
+
+  var ScreenDispatcher = function ScreenDispatcher() {
+    var screens = {};
+    var currentScreenId = SCR_INITIAL;
+
+    this.register = function register(id, func) {
+      screens[id] = func;
+    };
+
+    this.changeScreen = function changeScreen(id) {
+      // Clear timer
+      if (ctx.theTimer) {
+        clearInterval(ctx.theTimer);
+        ctx.theTimer = null;
+      }
+      var screen = screens[id];
+      if (!screen) {
+        return;
+      }
+      // Call init functions
+      if (screen.init) {
+        ctx.animateGlobal = false;
+        screen.init();
+        ctx.animateGlobal = true;
+      }
+      // Update draw function
+      if (screen.update && screen.getInterval) {
+        ctx.theTimer = setInterval(screen.update, screen.getInterval());
+      }
+      currentScreenId = id;
+    };
+
+    this.touchStart = function touchStart() {
+      d3.event.preventDefault();    // Don't propagate click event to outside <svg> tag
+      screens[currentScreenId].touchStart.apply(this, arguments);
+    };
+
+    this.touchEnd = function touchEnd() {
+      screens[currentScreenId].touchEnd.apply(this, arguments);
+    };
+  };
+
+  var InitialScreen = function InitialScreen() {
+    this.init = function init() {
+      drawThread(getThread());
+      makeNeedles();
+      drawNeedles(getNeedles());
+      drawStatusText(getStatusText());
+
+      // Draw at hidden point to get bbox width & height.
+      ctx.pressStartDS = [{  // <text>
+        x: -99, y: -99, fontSize: '24px', text: 'PRESS START',
+        fill: 'black'
+      }];
+      drawPressStart(getPressStart());
+      // Move to visible point
+      movePressStart();
+      drawPressStart(getPressStart());
+    };
+    var blink = true;
+    this.update = function update() {
+      blink = !blink;
+
+    };
+    this.getInterval = function getInterval() {
+      return 500;
+    };
+    this.touchStart = function touchStart() {
+      ctx.pressStartDS = [];
+      drawPressStart(getPressStart());
+      screenDispatcher.changeScreen(SCR_SELECT_MODE);
+    };
+    this.touchEnd = function touchEnd() {
+    };
+  };
+
+  var SelectModeScreen = function SelectModeScreen() {
+    this.init = function init() {
+      makeSelectModeScreen();
+      drawSelectModeScreen(getSelectModeScreen());
+    };
+    this.touchStart = function touchStart() {
+      if (selectedMode !== '') {
+        ctx = getInitVars(selectedMode);
+        clearSelectModeScreen(getSelectModeScreen());
+        drawSelectModeScreen(getSelectModeScreen());
+        screenDispatcher.changeScreen(SCR_RUNNING);
+      }
+    };
+    this.touchEnd = function touchEnd() {
+    };
+  };
+
+  var RunningScreen = function RunningScreen() {
+    this.init = function init() {
+      drawThread(getThread());
+      makeNeedles();
+      drawNeedles(getNeedles());
+      drawStatusText(getStatusText());
+    };
+    this.update = function update() {
+      // Move objects
+      var doContinue = moveThread();
+      moveNeedles();
+      doContinue = detectCollision() && doContinue;
+      // Update screen
+      drawThread(getThread());
+      drawNeedles(getNeedles());
+      drawStatusText(getStatusText());
+      // GAME OVER
+      if (!doContinue) {
+        screenDispatcher.changeScreen(SCR_GAMEOVER);
+      }
+    };
+    this.getInterval = function getInterval() {
+      return THIRTY_FPS;
+    };
+    this.touchStart = function touchStart() {
+      ctx.hovering = true;
+    };
+    this.touchEnd = function touchEnd() {
+      ctx.hovering = false;
+    };
+  };
+
+  var GameOverScreen = function GameOverScreen() {
+    var that = this;
+    this.init = function init() {
+      // Draw at hidden point to get bbox width & height.
+      ctx.gameOverDS = [{  // <text>
+        x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
+      }];
+      drawGameOver(getGameOver());
+      // Move to visible point
+      moveGameOver();
+      drawGameOver(getGameOver());
+    };
+    this.touchStart = function touchStart() {
+      ctx = getInitVars(selectedMode);
+      drawGameOver(getGameOver());
+      screenDispatcher.changeScreen(SCR_RUNNING);
+    };
+    this.touchEnd = function touchEnd() {
+    };
+  };
+
+  // ======================= (Initial screen) "PRESS START" text =======================
+  // * Get / Move / Draw "PRESS START" text object
+
+  var getPressStart = function getPressStart() {
+    return $svg.selectAll('#pressStart').data(ctx.pressStartDS);
+  };
+
+  var movePressStart = function movePressStart() {
+    var dataset = ctx.pressStartDS[0];
+    var bbox = document.getElementById('pressStart').getBBox();
+    dataset.x = ctx.svgDS.width / 2 - bbox.width / 2;
+    dataset.y = ctx.svgDS.height / 2 - bbox.height / 2;
+    ctx.pressStartDS = [dataset];
+  };
+
+  var drawPressStart = function drawPressStart($pressStart) {
+    // Enter
+    $pressStart.enter().append('text')
+      .attr('id', 'pressStart')
+      .attr('class', 'disable-select')
+      .attr('font-size', function(d) { return d.fontSize; })
+      .text(function(d) { return d.text; });
+    // Update
+    $pressStart
+      .attr('x', function(d) { return d.x; })
+      .attr('y', function(d) { return d.y; })
+      .attr('fill', function(d) { return d.fill; })
+    // Exit
+    $pressStart.exit().remove();
+  };
+
+  // ======================= Select mode screen =======================
+  // * Get / Move / Draw select mode object
+
+  var getSelectModeScreen = function getSelectModeScreen() {
+    return $svg.selectAll('.selectModeScreen').data(ctx.selectModeScreenDS);
+  };
+
+  var makeSelectModeScreen = function makeSelectModeScreen() {
+    ctx.selectModeScreenDS = [{
+      x: 0, y: 0, fill: 'black', width: ctx.svgDS.width, height: ctx.svgDS.height
+    }];
+    ctx.selectModeButtonsDS = [
+      {
+        rect: {x: 40, y: 30, fill: 'green', width: 110, height: 70},
+        text: {x: 60, y: 70, fontSize: '24px', text: 'EASY', fill: 'white'}
+      },
+      {
+        rect: {x: 180, y: 30, fill: 'blue', width: 110, height: 70},
+        text: {x: 190, y: 70, fontSize: '24px', text: 'NORMAL', fill: 'white'}
+      },
+      {
+        rect: {x: 40, y: 130, fill: 'red', width: 110, height: 70},
+        text: {x: 60, y: 170, fontSize: '24px', text: 'HARD', fill: 'white'}
+      },
+      {
+        rect: {x: 180, y: 130, fill: 'purple', width: 110, height: 70},
+        text: {x: 190, y: 170, fontSize: '24px', text: 'LUNATIC', fill: 'white'}
+      }
+    ];
+  };
+
+  var clearSelectModeScreen = function clearSelectModeScreen() {
+    ctx.selectModeScreenDS = [];
+    ctx.selectModeButtonsDS = [];
+  };
+
+  var drawSelectModeScreen = function drawSelectModeScreen($selectModeScreen) {
+    // Enter
+    $selectModeScreen.enter()
+      .append('g')
+        .attr('class', 'selectModeScreen')
+      .append('rect')
+        .attr('x', function(d) { return 0; })
+        .attr('y', function(d) { return 0; })
+        .attr('fill', function(d) { return d.fill; })
+        .attr('width', function(d) { return d.width; })
+        .attr('height', function(d) { return d.height; })
+
+    var selectMode = function() {
+      var mode = d3.select(this).attr('data-mode');
+      if (mode !== '') selectedMode = mode;
+    };
+    var $buttons = $selectModeScreen
+                   .selectAll('.selectModeButtonsDS')
+                   .data(ctx.selectModeButtonsDS)
+    $buttons
+      .enter()
+      .append('rect')
+        .attr('class', 'selectModeButtonsDS')
+        .attr('data-mode', function(d) { return d.text.text; })
+        .attr('x', function(d) { return d.rect.x; })
+        .attr('y', function(d) { return d.rect.y; })
+        .attr('fill', function(d) { return d.rect.fill; })
+        .attr('width', function(d) { return d.rect.width; })
+        .attr('height', function(d) { return d.rect.height; })
+        .on('touchstart', selectMode)
+        .on('mousedown', selectMode)
+    $buttons
+      .enter()
+      .append('text')
+        .attr('class', 'disable-select')
+        .attr('data-mode', function(d) { return d.text.text; })
+        .attr('x', function(d) { return d.text.x; })
+        .attr('y', function(d) { return d.text.y; })
+        .attr('fill', function(d) { return d.text.fill; })
+        .attr('font-size', function(d) { return d.text.fontSize; })
+        .text(function(d) { return d.text.text; })
+        .on('touchstart', selectMode)
+        .on('mousedown', selectMode)
+
+    // Exit
+    $selectModeScreen.exit().remove();
+    $buttons.exit().remove();
+  };
+
   // ======================= Needles =======================
+  // * Get / Move / Draw needles objects
+
+  var makeNeedles = function makeNeedles() {
+    // Generate needle objects.
+    var needleGroupDS = [];
+    // To place the next needle when hole height (mm) is changed,
+    // We must have enough number of needles on screen (even if invisible).
+    var needleNum = Math.floor(ctx.svgDS.width / ctx.scoreMmMap[0][2] + 2);
+    // First object is placed at 'ctx.svgDS.width'.
+    var objX = ctx.svgDS.width;
+    for (var i = 0; i < needleNum; i++) {
+      needleGroupDS.push({
+        x: objX,
+        y: randNumBetween(0, ctx.svgDS.height - ctx.scoreMmMap[0][1]),
+        passed: false
+      });
+      objX += ctx.scoreMmMap[0][2];
+    }
+    ctx.needleGroupDS = needleGroupDS;
+  };
 
   // Need to access to moving objects via D3 API.
   // (Saving to '$needles' variable leaves old objects in screen...)
@@ -251,12 +517,12 @@ window.ItoToShi = (function() {
     $needles.each(function(d) {
       // http://stackoverflow.com/questions/26903355/how-to-cancel-scheduled-transition-in-d3
         d3.select(this)
-          .transition().duration(d.animate ? INTERVAL : 0)
+          .transition().duration(shouldAnimate(d) ? THIRTY_FPS : 0)
           .attr('transform', 'translate(' + d.x + ',' + d.y + ')');
     });
 
     $needleChildren
-      .transition().duration(INTERVAL * 3)
+      .transition().duration(shouldAnimate() ? THIRTY_FPS * 3 : 0)
       .attr('height', function (d) { return d.height; });
 
     // Exit
@@ -264,6 +530,7 @@ window.ItoToShi = (function() {
   };
 
   // ======================= Thread =======================
+  // * Get / Move / Draw thread object
 
   var getThread = function getThread() {
     return $svg.selectAll('.thread').data(ctx.threadDS);
@@ -288,16 +555,17 @@ window.ItoToShi = (function() {
     // Enter
     $thread.enter().append('circle')
       .attr('class', 'thread')
-      .attr('cx', function(d) { return d.cx; })
-      .attr('cy', function(d) { return d.cy; })
+      .attr('cx', function(d) { return 0; })
+      .attr('cy', function(d) { return 0; })
       .attr('r', function(d) { return d.r; })
       .attr('fill', function(d) { return d.fill; });
     // Update
-    $thread.transition().duration(INTERVAL)
+    $thread.transition().duration(shouldAnimate() ? THIRTY_FPS : 0)
       .attr('transform', function(d) { return 'translate(' + d.cx + ',' + d.cy + ')'; });
   };
 
   // ======================= "GAME OVER" text =======================
+  // * Get / Move / Draw "GAME OVER" text
 
   var getGameOver = function getGameOver() {
     return $svg.selectAll('#gameOver').data(ctx.gameOverDS);
@@ -308,6 +576,7 @@ window.ItoToShi = (function() {
     var bbox = document.getElementById('gameOver').getBBox();
     dataset.x = ctx.svgDS.width / 2 - bbox.width / 2;
     dataset.y = ctx.svgDS.height / 2 - bbox.height / 2;
+    ctx.gameOverDS = [dataset];
   };
 
   var drawGameOver = function drawGameOver($gameover) {
@@ -321,9 +590,12 @@ window.ItoToShi = (function() {
     $gameover
       .attr('x', function(d) { return d.x; })
       .attr('y', function(d) { return d.y; })
+    // Exit
+    $gameover.exit().remove();
   };
 
   // ======================= Status text =======================
+  // * Get / Move / Draw status text
 
   var getStatusText = function getStatusText() {
     return $svg.selectAll('#statusText').data(ctx.statusTextDS);
@@ -380,7 +652,7 @@ window.ItoToShi = (function() {
     var mm = getMmByLevel(ctx.level);
     var distanceX = getDistanceXByLevel(ctx.level);
     $statusText
-      .text(function(d) { return d.score + '本 針穴' + mm + 'mm 距離' + distanceX + 'm'; });
+      .text(function(d) { return d.mode + ' ' + d.score + '本 針穴' + mm + 'mm 距離' + distanceX + 'm'; });
   };
 
   // ======================= Collision detection =======================
@@ -414,3 +686,5 @@ window.ItoToShi = (function() {
     init: init
   };
 })();
+
+window.onload = window.ItoToShi.init;

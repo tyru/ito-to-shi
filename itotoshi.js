@@ -1,20 +1,6 @@
 window.ItoToShi = (function() {
   'use strict';
 
-  // TODO: Support the all following screen widths like the ones defined by Bootstrap
-  // * Extra small devices (phones, less than 768px)
-  //   * No media query since this is the default in Bootstrap
-  // * Small devices (tablets, 768px and up)
-  //   * @media (min-width: @screen-sm-min) { ... }
-  // * Medium devices (desktops, 992px and up)
-  //   * @media (min-width: @screen-md-min) { ... }
-  // * Large devices (large desktops, 1200px and up)
-  //   * @media (min-width: @screen-lg-min) { ... }
-  // TODO: Auto full screen on load (#fullscreen)
-  // TODO: More effects (explosion on GAME OVER, Level up, ...)
-  // TODO: Better (background|needle)' images
-  // TODO: Use requestAnimationFrame() instead of setInterval() ?
-
   var INTERVAL = 1000.0 / 30.0;
   var ST_INITIAL = 1;
   var ST_RUNNING = 2;

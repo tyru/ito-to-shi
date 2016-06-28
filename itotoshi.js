@@ -153,8 +153,8 @@ window.ItoToShi = (function() {
         fill: 'red', cx: svgDS.width * 0.33, cy: svgDS.height * 0.33, r: 5, a: 1
       }],
       statusTextDS: [{  // <text>
-        x: 100, y: 12, fontSize: '12px', text: '',
-        score: 0
+        x: 60, y: 12, fontSize: '12px', text: '',
+        score: 0, mode: mode
       }],
       scoreMmMap: scoreMmMap,
       level: 0,
@@ -427,7 +427,7 @@ window.ItoToShi = (function() {
     var mm = getMmByLevel(ctx.level);
     var distanceX = getDistanceXByLevel(ctx.level);
     $statusText
-      .text(function(d) { return d.score + '本 針穴' + mm + 'mm 距離' + distanceX + 'm'; });
+      .text(function(d) { return d.mode + ' ' + d.score + '本 針穴' + mm + 'mm 距離' + distanceX + 'm'; });
   };
 
   // ======================= Collision detection =======================

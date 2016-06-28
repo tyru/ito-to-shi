@@ -19,12 +19,12 @@ window.ItoToShi = (function() {
     ctx = getInitVars(HARD_MODE);
     // Draw initial screen
     $svg = d3.select("body").select("svg")
-      .on('touchstart', setHovering)
-      .on('touchend', unsetHovering)
-      .on('keydown', setHovering)
-      .on('keyup', unsetHovering)
-      .on('mousedown', setHovering)
-      .on('mouseup', unsetHovering)
+      .on('touchstart', touchStart)
+      .on('touchend', touchEnd)
+      .on('keydown', touchStart)
+      .on('keyup', touchEnd)
+      .on('mousedown', touchStart)
+      .on('mouseup', touchEnd)
       .attr('width', ctx.svgDS.width)
       .attr('height', ctx.svgDS.height);
     drawThread(getThread());
@@ -196,7 +196,7 @@ window.ItoToShi = (function() {
   // 2. Running -> (set hovering) -> Running
   // 3. Stopped -> Running
   // 4. GameOver -> Initial -> (unset isInitial) -> Running
-  var setHovering = function() {
+  var touchStart = function touchStart() {
     d3.event.preventDefault();    // Don't propagate click event to outside <svg> tag
     var state = getState();
     if (state & (ST_INITIAL | ST_STOPPED)) {
@@ -211,7 +211,7 @@ window.ItoToShi = (function() {
     }
   };
 
-  var unsetHovering = function() {
+  var touchEnd = function touchEnd() {
     ctx.hovering = false;
   };
 

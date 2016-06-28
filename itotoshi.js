@@ -199,6 +199,12 @@ window.ItoToShi = (function() {
   };
 
   var InitialScreen = function InitialScreen() {
+    this.init = function init() {
+      drawThread(getThread());
+      makeNeedles();
+      drawNeedles(getNeedles());
+      drawStatusText(getStatusText());
+    };
     this.getInterval = function getInterval() {
       return 500;
     };
@@ -230,7 +236,7 @@ window.ItoToShi = (function() {
   var RunningScreen = function RunningScreen() {
     this.init = function init() {
       drawThread(getThread());
-      addNeedles();
+      makeNeedles();
       drawNeedles(getNeedles());
       drawStatusText(getStatusText());
     };
@@ -308,7 +314,7 @@ window.ItoToShi = (function() {
   // ======================= Needles =======================
   // * Get / Move / Draw needles objects
 
-  var addNeedles = function addNeedles() {
+  var makeNeedles = function makeNeedles() {
     // Generate needle objects.
     var needleGroupDS = [];
     // To place the next needle when hole height (mm) is changed,

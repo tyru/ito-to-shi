@@ -6,13 +6,17 @@ window.ItoToShi = (function() {
   var ST_RUNNING = 2;
   var ST_STOPPED = 4;
   var ST_GAMEOVER = 8;
+  var EASY_MODE = 'EASY';
+  var NORMAL_MODE = 'NORMAL';
+  var HARD_MODE = 'HARD';
+  var LUNATIC_MODE = 'LUNATIC';
   var NEEDLE_WHOLE_DY = 1;
   var $svg;
   var ctx;
 
   var init = function init() {
     // Draw variables
-    ctx = getInitVars();
+    ctx = getInitVars(HARD_MODE);
     // Draw initial screen
     $svg = d3.select("body").select("svg")
       .on('touchstart', setHovering)
@@ -64,20 +68,63 @@ window.ItoToShi = (function() {
     }
   };
 
-  var getInitVars = function getInitVars() {
+  var getInitVars = function getInitVars(mode) {
     var svgDS = {
       width: 320,
       height: 320
     };
-    var scoreMmMap = [
-      // [least score, hole height (mm), distanceX]
-      [0, 100, 200],
-      [10, 90, 180],
-      [20, 80, 160],
-      [30, 70, 140],
-      [40, 60, 140],
-      [50, 50, 140]
-    ];
+    var scoreMmMap, needleDx, threadDy;
+    if (mode === EASY_MODE) {
+      scoreMmMap = [
+        // [least score, hole height (mm), distanceX]
+        [0  , 150, 320],
+        [10 , 140, 300],
+        [20 , 120, 280],
+        [40 , 110, 260],
+        [80 , 100, 240],
+        [100,  90, 220]
+      ];
+      needleDx = -5;
+      threadDy = 1;
+    } else if (mode === NORMAL_MODE) {
+      scoreMmMap = [
+        // [least score, hole height (mm), distanceX]
+        [0  , 120, 260],
+        [10 , 110, 240],
+        [20 , 100, 220],
+        [40 ,  90, 200],
+        [80 ,  80, 180],
+        [100,  70, 160]
+      ];
+      needleDx = -5;
+      threadDy = 1;
+    } else if (mode === HARD_MODE) {
+      scoreMmMap = [
+        // [least score, hole height (mm), distanceX]
+        [0  , 100, 200],
+        [10 ,  90, 180],
+        [20 ,  80, 160],
+        [40 ,  70, 140],
+        [80 ,  60, 140],
+        [100,  50, 140]
+      ];
+      needleDx = -5;
+      threadDy = 1;
+    } else if (mode === LUNATIC_MODE) {
+      scoreMmMap = [
+        // [least score, hole height (mm), distanceX]
+        [0  , 100, 200],
+        [10 ,  90, 180],
+        [20 ,  80, 160],
+        [40 ,  70, 140],
+        [80 ,  60, 140],
+        [100,  50, 140]
+      ];
+      needleDx = -7.5;
+      threadDy = 1.5;
+    } else {
+      throw 'unknown mode!';
+    }
     // Generate needle objects.
     var needleGroupDS = [];
     // To place the next needle when hole height (mm) is changed,
@@ -103,7 +150,7 @@ window.ItoToShi = (function() {
           height: scoreMmMap[0][1], animate: true}
       ],
       threadDS: [{  // <circle>
-        fill: 'red', cx: svgDS.width * 0.33, cy: 0, r: 5, a: /*9.8*/ 1
+        fill: 'red', cx: svgDS.width * 0.33, cy: svgDS.height * 0.33, r: 5, a: 1
       }],
       statusTextDS: [{  // <text>
         x: 100, y: 12, fontSize: '12px', text: '',
@@ -114,9 +161,9 @@ window.ItoToShi = (function() {
       gameOverDS: [{  // <text>
         x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
       }],
-      needleDx: -5,
+      needleDx: needleDx,
       needleGapX: -10,
-      Da: 1,
+      Da: threadDy,
       minA: -10,
       maxA: 10,
       hovering: false,

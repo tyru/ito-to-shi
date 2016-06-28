@@ -1,9 +1,7 @@
 window.ItoToShi = (function() {
   'use strict';
 
-  var INTERVAL_AT_INITIAL = 500;
-  var INTERVAL_AT_SELECT_MODE = 1000.0 / 30.0;
-  var INTERVAL_AT_RUNNING = 1000.0 / 30.0;
+  var THIRTY_FPS = 1000.0 / 30.0;
   var SCR_INITIAL = 1;
   var SCR_SELECT_MODE = 2;
   var SCR_RUNNING = 3;
@@ -15,8 +13,16 @@ window.ItoToShi = (function() {
   var NEEDLE_WHOLE_DY = 1;
   var $svg;
   var ctx;
+  var screens;
+  var touchFn;
 
   var init = function init() {
+    screens = {};
+    screens[SCR_INITIAL] = new InitialScreen();
+    screens[SCR_SELECT_MODE] = new SelectModeScreen();
+    screens[SCR_RUNNING] = new RunningScreen();
+    screens[SCR_GAMEOVER] = new GameOverScreen();
+
     ctx = getInitVars(HARD_MODE);
     changeScreen(SCR_INITIAL);
   };
@@ -29,6 +35,12 @@ window.ItoToShi = (function() {
     if (!cond) {
       throw new Error('Assertion Error' + (msg ? ': ' + msg : ''));
     }
+  };
+
+  var shouldAnimate = function shouldAnimate(dataset) {
+    if (dataset && !dataset.animate)
+      return false;
+    return ctx.animateGlobal;
   };
 
   var getInitVars = function getInitVars(mode) {
@@ -88,25 +100,10 @@ window.ItoToShi = (function() {
     } else {
       throw 'unknown mode!';
     }
-    // Generate needle objects.
-    var needleGroupDS = [];
-    // To place the next needle when hole height (mm) is changed,
-    // We must have enough number of needles on screen (even if invisible).
-    var needleNum = Math.floor(svgDS.width / scoreMmMap[0][2] + 2);
-    // First object is placed at 'svgDS.width'.
-    var objX = svgDS.width;
-    for (var i = 0; i < needleNum; i++) {
-      needleGroupDS.push({
-        x: objX,
-        y: randNumBetween(0, svgDS.height - scoreMmMap[0][1]),
-        passed: false
-      });
-      objX += scoreMmMap[0][2];
-    }
 
     return {
       svgDS: svgDS,
-      needleGroupDS: needleGroupDS, // <g>
+      needleGroupDS: [], // <g>
       needleDS: [  // <rect>
         {x: 0, y: 0, fill: 'gray', width: 10, height: 999, animate: true},
         {x: 2, y: NEEDLE_WHOLE_DY, fill: 'white', width: 6,
@@ -121,9 +118,8 @@ window.ItoToShi = (function() {
       }],
       scoreMmMap: scoreMmMap,
       level: 0,
-      gameOverDS: [{  // <text>
-        x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
-      }],
+      gameOverDS: [],    // <text>
+      selectModeScreenDS: [],    // TODO: <g>
       needleDx: needleDx,
       needleGapX: -10,
       Da: threadDy,
@@ -131,11 +127,11 @@ window.ItoToShi = (function() {
       maxA: 10,
       hovering: false,
       threadGameOverGapY: 10,
-      theTimer: null
+      theTimer: null,
+      animateGlobal: true
     };
   };
 
-  var touchFn;
   // 1. Initial -> (unset isInitial) -> Running
   // 2. Running -> (set hovering) -> Running
   // 3. Stopped -> Running
@@ -145,95 +141,113 @@ window.ItoToShi = (function() {
     touchFn();
   };
 
-  var changeScreen = function changeScreen(screen) {
-    if (screen === SCR_INITIAL) {
-      // Update draw function
-      if (ctx.theTimer) clearInterval(ctx.theTimer);
-      ctx.theTimer = setInterval(updateAtInitial, INTERVAL_AT_INITIAL);
-      // Update touch function
-      touchFn = touchStartAtInitial;
+  var InitialScreen = function InitialScreen() {
+    this.init = function init() {
+      $svg = d3.select("body").select("svg")
+        .on('touchstart', touchStart)
+        .on('touchend', touchEnd)
+        .on('keydown', touchStart)
+        .on('keyup', touchEnd)
+        .on('mousedown', touchStart)
+        .on('mouseup', touchEnd)
+        .attr('width', ctx.svgDS.width)
+        .attr('height', ctx.svgDS.height);
+    };
+    this.getInterval = function getInterval() {
+      return 500;
+    };
+    this.touchStart = function touchStart() {
+      changeScreen(SCR_SELECT_MODE);
+    };
+  };
 
-    // TODO
-    // } else if (screen === SCR_SELECT_MODE) {
-    //   // Update draw function
-    //   if (ctx.theTimer) clearInterval(ctx.theTimer);
-    //   ctx.theTimer = setInterval(updateAtSelectMode, INTERVAL_AT_SELECT_MODE);
-    //   // Update touch function
-    //   touchFn = touchStartAtSelectMode;
+  var SelectModeScreen = function SelectModeScreen() {
+    this.update = function update() {
+      // TODO
+      changeScreen(SCR_RUNNING);
+    };
+    this.getInterval = function getInterval() {
+      return THIRTY_FPS;
+    };
+    this.touchStart = function touchStart() {
+      // TODO
+      changeScreen(SCR_RUNNING);
+    };
+  };
 
-    } else if (screen === SCR_SELECT_MODE || screen === SCR_RUNNING) {
-      // Update draw function
-      if (ctx.theTimer) clearInterval(ctx.theTimer);
-      ctx.theTimer = setInterval(updateAtRunning, INTERVAL_AT_RUNNING);
-      // Update touch function
-      touchFn = touchStartAtRunning;
+  var RunningScreen = function RunningScreen() {
+    this.init = function init() {
+      drawThread(getThread());
+      addNeedles();
+      drawNeedles(getNeedles());
+      drawStatusText(getStatusText());
+    };
+    this.update = function update() {
+      // Move objects
+      var doContinue = moveThread();
+      moveNeedles();
+      doContinue = detectCollision() && doContinue;
+      // Update screen
+      drawThread(getThread());
+      drawNeedles(getNeedles());
+      drawStatusText(getStatusText());
+      // GAME OVER
+      if (!doContinue) {
+        changeScreen(SCR_GAMEOVER);
+      }
+    };
+    this.getInterval = function getInterval() {
+      return THIRTY_FPS;
+    };
+    this.touchStart = function touchStart() {
+      ctx.hovering = true;
+    };
+  };
 
-    } else if (screen === SCR_GAMEOVER) {
-      // Update draw function
-      if (ctx.theTimer) clearInterval(ctx.theTimer);
-      updateAtGameOver();
-      // ctx.theTimer = null;
-      // ctx.theTimer = setInterval(updateAtGameOver, INTERVAL_AT_GAMEOVER);
-      // Update touch function
-      touchFn = touchStartAtGameOver;
+  var GameOverScreen = function GameOverScreen() {
+    var that = this;
+    this.init = function init() {
+      // Draw at hidden point to get bbox width & height.
+      ctx.gameOverDS = [{  // <text>
+        x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
+      }];
+      drawGameOver(getGameOver());
+      // Move to visible point
+      moveGameOver();
+      drawGameOver(getGameOver());
+    };
+    this.touchStart = function touchStart() {
+      init();
+      drawGameOver(getGameOver());
+      changeScreen(SCR_RUNNING);
+    };
+  };
+
+  var changeScreen = function changeScreen(screenName) {
+    if (ctx.theTimer) {
+      clearInterval(ctx.theTimer);
+      ctx.theTimer = null;
     }
-  };
 
-  var touchStartAtInitial = function touchStartAtInitial() {
-    changeScreen(SCR_SELECT_MODE);
-  };
-
-  var updateAtInitial = function updateAtInitial() {
-    console.log('updateAtInitial() enter');
-    // Draw initial screen
-    $svg = d3.select("body").select("svg")
-      .on('touchstart', touchStart)
-      .on('touchend', touchEnd)
-      .on('keydown', touchStart)
-      .on('keyup', touchEnd)
-      .on('mousedown', touchStart)
-      .on('mouseup', touchEnd)
-      .attr('width', ctx.svgDS.width)
-      .attr('height', ctx.svgDS.height);
-    drawThread(getThread());
-    drawNeedles(getNeedles());
-    drawStatusText(getStatusText());
-    drawGameOver(getGameOver());
-  };
-
-  var touchStartAtSelectMode = function touchStartAtSelectMode() {
-    changeScreen(SCR_RUNNING);
-  };
-
-  var touchStartAtRunning = function touchStartAtRunning() {
-    ctx.hovering = true;
-  };
-
-  var updateAtRunning = function updateAtRunning() {
-    console.log('updateAtRunning() enter');
-    // Move objects
-    var doContinue = moveThread();
-    moveNeedles();
-    doContinue = detectCollision() && doContinue;
-    // Update screen
-    drawThread(getThread());
-    drawNeedles(getNeedles());
-    drawStatusText(getStatusText());
-    // GAME OVER
-    if (!doContinue) {
-      changeScreen(SCR_GAMEOVER);
+    var screen = screens[screenName];
+    if (!screen) {
+      return;
     }
-  };
 
-  var touchStartAtGameOver = function touchStartAtGameOver() {
-    init();
-    drawGameOver(getGameOver());
-    changeScreen(SCR_RUNNING);
-  };
+    // Call init functions
+    if (screen.init) {
+      ctx.animateGlobal = false;
+      screen.init();
+      ctx.animateGlobal = true;
+    }
 
-  var updateAtGameOver = function updateAtGameOver() {
-    moveGameOver();
-    drawGameOver(getGameOver());
+    // Update draw function
+    if (screen.update && screen.getInterval) {
+      ctx.theTimer = setInterval(screen.update, screen.getInterval());
+    }
+
+    // Update touch function
+    touchFn = screen.touchStart;
   };
 
   var touchEnd = function touchEnd() {
@@ -252,7 +266,49 @@ window.ItoToShi = (function() {
     }
   };
 
+  // ======================= Select mode screen =======================
+
+  var getSelectModeScreen = function getSelectModeScreen() {
+    return $svg.selectAll('.selectModeScreen').data(ctx.selectModeScreenDS);
+  };
+
+  var drawSelectModeScreen = function drawSelectModeScreen($selectModeScreen) {
+    // Enter
+    $selectModeScreen.enter().append('g')
+      .attr('class', 'selectModeScreen');
+
+    var $buttons = $selectModeScreen.selectAll('rect').data(ctx.selectModeButtonsDS);
+    $buttons
+      .enter().append('rect')
+      .attr('x', function(d) { return d.x; })
+      .attr('y', function(d) { return d.y; })
+      .attr('fill', function(d) { return d.fill; })
+      .attr('width', function(d) { return d.width; });
+
+    // Exit
+    $selectModeScreen.exit().remove();
+  };
+
   // ======================= Needles =======================
+
+  var addNeedles = function addNeedles() {
+    // Generate needle objects.
+    var needleGroupDS = [];
+    // To place the next needle when hole height (mm) is changed,
+    // We must have enough number of needles on screen (even if invisible).
+    var needleNum = Math.floor(ctx.svgDS.width / ctx.scoreMmMap[0][2] + 2);
+    // First object is placed at 'ctx.svgDS.width'.
+    var objX = ctx.svgDS.width;
+    for (var i = 0; i < needleNum; i++) {
+      needleGroupDS.push({
+        x: objX,
+        y: randNumBetween(0, ctx.svgDS.height - ctx.scoreMmMap[0][1]),
+        passed: false
+      });
+      objX += ctx.scoreMmMap[0][2];
+    }
+    ctx.needleGroupDS = needleGroupDS;
+  };
 
   // Need to access to moving objects via D3 API.
   // (Saving to '$needles' variable leaves old objects in screen...)
@@ -323,12 +379,12 @@ window.ItoToShi = (function() {
     $needles.each(function(d) {
       // http://stackoverflow.com/questions/26903355/how-to-cancel-scheduled-transition-in-d3
         d3.select(this)
-          .transition().duration(d.animate ? INTERVAL_AT_RUNNING : 0)
+          .transition().duration(shouldAnimate(d) ? THIRTY_FPS : 0)
           .attr('transform', 'translate(' + d.x + ',' + d.y + ')');
     });
 
     $needleChildren
-      .transition().duration(INTERVAL_AT_RUNNING * 3)
+      .transition().duration(shouldAnimate() ? THIRTY_FPS * 3 : 0)
       .attr('height', function (d) { return d.height; });
 
     // Exit
@@ -365,7 +421,7 @@ window.ItoToShi = (function() {
       .attr('r', function(d) { return d.r; })
       .attr('fill', function(d) { return d.fill; });
     // Update
-    $thread.transition().duration(INTERVAL_AT_RUNNING)
+    $thread.transition().duration(shouldAnimate() ? THIRTY_FPS : 0)
       .attr('transform', function(d) { return 'translate(' + d.cx + ',' + d.cy + ')'; });
   };
 
@@ -380,6 +436,7 @@ window.ItoToShi = (function() {
     var bbox = document.getElementById('gameOver').getBBox();
     dataset.x = ctx.svgDS.width / 2 - bbox.width / 2;
     dataset.y = ctx.svgDS.height / 2 - bbox.height / 2;
+    ctx.gameOverDS = [dataset];
   };
 
   var drawGameOver = function drawGameOver($gameover) {
@@ -393,6 +450,8 @@ window.ItoToShi = (function() {
     $gameover
       .attr('x', function(d) { return d.x; })
       .attr('y', function(d) { return d.y; })
+    // Exit
+    $gameover.exit().remove();
   };
 
   // ======================= Status text =======================

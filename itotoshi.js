@@ -13,18 +13,27 @@ window.ItoToShi = (function() {
   var NEEDLE_WHOLE_DY = 1;
   var $svg;
   var ctx;
-  var screens;
-  var touchFn;
+  var screenDispatcher;
 
   var init = function init() {
-    screens = {};
-    screens[SCR_INITIAL] = new InitialScreen();
-    screens[SCR_SELECT_MODE] = new SelectModeScreen();
-    screens[SCR_RUNNING] = new RunningScreen();
-    screens[SCR_GAMEOVER] = new GameOverScreen();
+    screenDispatcher = new ScreenDispatcher();
+    screenDispatcher.register(SCR_INITIAL, new InitialScreen());
+    screenDispatcher.register(SCR_SELECT_MODE, new SelectModeScreen());
+    screenDispatcher.register(SCR_RUNNING, new RunningScreen());
+    screenDispatcher.register(SCR_GAMEOVER, new GameOverScreen());
 
     ctx = getInitVars(HARD_MODE);
-    changeScreen(SCR_INITIAL);
+    $svg = d3.select("body").select("svg")
+      .on('touchstart', screenDispatcher.touchStart)
+      .on('touchend', screenDispatcher.touchEnd)
+      .on('keydown', screenDispatcher.touchStart)
+      .on('keyup', screenDispatcher.touchEnd)
+      .on('mousedown', screenDispatcher.touchStart)
+      .on('mouseup', screenDispatcher.touchEnd)
+      .attr('width', ctx.svgDS.width)
+      .attr('height', ctx.svgDS.height);
+
+    screenDispatcher.changeScreen(SCR_INITIAL);
   };
 
   var randNumBetween = function randNumBetween(start, end) {
@@ -132,46 +141,89 @@ window.ItoToShi = (function() {
     };
   };
 
-  // 1. Initial -> (unset isInitial) -> Running
-  // 2. Running -> (set hovering) -> Running
-  // 3. Stopped -> Running
-  // 4. GameOver -> Initial -> (unset isInitial) -> Running
-  var touchStart = function touchStart() {
-    d3.event.preventDefault();    // Don't propagate click event to outside <svg> tag
-    touchFn();
+  var enableFullscreen = function enableFullscreen(elem) {
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen();
+    } else if (elem.msRequestFullscreen) {
+      elem.msRequestFullscreen();
+    } else if (elem.mozRequestFullScreen) {
+      elem.mozRequestFullScreen();
+    } else if (elem.webkitRequestFullscreen) {
+      elem.webkitRequestFullscreen();
+    }
+  };
+
+  // ======================= ScreenDispatcher =======================
+  // * Dispatches *Screen instances' methods.
+  // * Changes current screen ID.
+
+  var ScreenDispatcher = function ScreenDispatcher() {
+    var screens = {};
+    var currentScreenId = SCR_INITIAL;
+
+    this.register = function register(id, func) {
+      screens[id] = func;
+    };
+
+    this.changeScreen = function changeScreen(id) {
+      // Clear timer
+      if (ctx.theTimer) {
+        clearInterval(ctx.theTimer);
+        ctx.theTimer = null;
+      }
+      var screen = screens[id];
+      if (!screen) {
+        return;
+      }
+      // Call init functions
+      if (screen.init) {
+        ctx.animateGlobal = false;
+        screen.init();
+        ctx.animateGlobal = true;
+      }
+      // Update draw function
+      if (screen.update && screen.getInterval) {
+        ctx.theTimer = setInterval(screen.update, screen.getInterval());
+      }
+      currentScreenId = id;
+    };
+
+    this.touchStart = function touchStart() {
+      d3.event.preventDefault();    // Don't propagate click event to outside <svg> tag
+      screens[currentScreenId].touchStart();
+    };
+
+    this.touchEnd = function touchEnd() {
+      screens[currentScreenId].touchEnd();
+    };
   };
 
   var InitialScreen = function InitialScreen() {
-    this.init = function init() {
-      $svg = d3.select("body").select("svg")
-        .on('touchstart', touchStart)
-        .on('touchend', touchEnd)
-        .on('keydown', touchStart)
-        .on('keyup', touchEnd)
-        .on('mousedown', touchStart)
-        .on('mouseup', touchEnd)
-        .attr('width', ctx.svgDS.width)
-        .attr('height', ctx.svgDS.height);
-    };
     this.getInterval = function getInterval() {
       return 500;
     };
     this.touchStart = function touchStart() {
-      changeScreen(SCR_SELECT_MODE);
+      screenDispatcher.changeScreen(SCR_SELECT_MODE);
+    };
+    this.touchEnd = function touchEnd() {
+      ctx.hovering = false;
     };
   };
 
   var SelectModeScreen = function SelectModeScreen() {
     this.update = function update() {
       // TODO
-      changeScreen(SCR_RUNNING);
+      screenDispatcher.changeScreen(SCR_RUNNING);
     };
     this.getInterval = function getInterval() {
       return THIRTY_FPS;
     };
     this.touchStart = function touchStart() {
       // TODO
-      changeScreen(SCR_RUNNING);
+      screenDispatcher.changeScreen(SCR_RUNNING);
+    };
+    this.touchEnd = function touchEnd() {
+      ctx.hovering = false;
     };
   };
 
@@ -193,7 +245,7 @@ window.ItoToShi = (function() {
       drawStatusText(getStatusText());
       // GAME OVER
       if (!doContinue) {
-        changeScreen(SCR_GAMEOVER);
+        screenDispatcher.changeScreen(SCR_GAMEOVER);
       }
     };
     this.getInterval = function getInterval() {
@@ -201,6 +253,9 @@ window.ItoToShi = (function() {
     };
     this.touchStart = function touchStart() {
       ctx.hovering = true;
+    };
+    this.touchEnd = function touchEnd() {
+      ctx.hovering = false;
     };
   };
 
@@ -219,54 +274,15 @@ window.ItoToShi = (function() {
     this.touchStart = function touchStart() {
       init();
       drawGameOver(getGameOver());
-      changeScreen(SCR_RUNNING);
+      screenDispatcher.changeScreen(SCR_RUNNING);
+    };
+    this.touchEnd = function touchEnd() {
+      ctx.hovering = false;
     };
   };
 
-  var changeScreen = function changeScreen(screenName) {
-    if (ctx.theTimer) {
-      clearInterval(ctx.theTimer);
-      ctx.theTimer = null;
-    }
-
-    var screen = screens[screenName];
-    if (!screen) {
-      return;
-    }
-
-    // Call init functions
-    if (screen.init) {
-      ctx.animateGlobal = false;
-      screen.init();
-      ctx.animateGlobal = true;
-    }
-
-    // Update draw function
-    if (screen.update && screen.getInterval) {
-      ctx.theTimer = setInterval(screen.update, screen.getInterval());
-    }
-
-    // Update touch function
-    touchFn = screen.touchStart;
-  };
-
-  var touchEnd = function touchEnd() {
-    ctx.hovering = false;
-  };
-
-  var enableFullscreen = function enableFullscreen(elem) {
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen();
-    } else if (elem.msRequestFullscreen) {
-      elem.msRequestFullscreen();
-    } else if (elem.mozRequestFullScreen) {
-      elem.mozRequestFullScreen();
-    } else if (elem.webkitRequestFullscreen) {
-      elem.webkitRequestFullscreen();
-    }
-  };
-
   // ======================= Select mode screen =======================
+  // * Get / Move / Draw select mode object
 
   var getSelectModeScreen = function getSelectModeScreen() {
     return $svg.selectAll('.selectModeScreen').data(ctx.selectModeScreenDS);
@@ -290,6 +306,7 @@ window.ItoToShi = (function() {
   };
 
   // ======================= Needles =======================
+  // * Get / Move / Draw needles objects
 
   var addNeedles = function addNeedles() {
     // Generate needle objects.
@@ -392,6 +409,7 @@ window.ItoToShi = (function() {
   };
 
   // ======================= Thread =======================
+  // * Get / Move / Draw thread object
 
   var getThread = function getThread() {
     return $svg.selectAll('.thread').data(ctx.threadDS);
@@ -426,6 +444,7 @@ window.ItoToShi = (function() {
   };
 
   // ======================= "GAME OVER" text =======================
+  // * Get / Move / Draw "GAME OVER" text
 
   var getGameOver = function getGameOver() {
     return $svg.selectAll('#gameOver').data(ctx.gameOverDS);
@@ -455,6 +474,7 @@ window.ItoToShi = (function() {
   };
 
   // ======================= Status text =======================
+  // * Get / Move / Draw status text
 
   var getStatusText = function getStatusText() {
     return $svg.selectAll('#statusText').data(ctx.statusTextDS);

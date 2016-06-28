@@ -461,3 +461,5 @@ window.ItoToShi = (function() {
     init: init
   };
 })();
+
+window.onload = window.ItoToShi.init;

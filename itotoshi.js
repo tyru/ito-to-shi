@@ -1,11 +1,13 @@
 window.ItoToShi = (function() {
   'use strict';
 
-  var INTERVAL = 1000.0 / 30.0;
-  var ST_INITIAL = 1;
-  var ST_RUNNING = 2;
-  var ST_STOPPED = 4;
-  var ST_GAMEOVER = 8;
+  var INTERVAL_AT_INITIAL = 500;
+  var INTERVAL_AT_SELECT_MODE = 1000.0 / 30.0;
+  var INTERVAL_AT_RUNNING = 1000.0 / 30.0;
+  var SCR_INITIAL = 1;
+  var SCR_SELECT_MODE = 2;
+  var SCR_RUNNING = 3;
+  var SCR_GAMEOVER = 4;
   var EASY_MODE = 'EASY';
   var NORMAL_MODE = 'NORMAL';
   var HARD_MODE = 'HARD';
@@ -15,47 +17,8 @@ window.ItoToShi = (function() {
   var ctx;
 
   var init = function init() {
-    // Draw variables
     ctx = getInitVars(HARD_MODE);
-    // Draw initial screen
-    $svg = d3.select("body").select("svg")
-      .on('touchstart', touchStart)
-      .on('touchend', touchEnd)
-      .on('keydown', touchStart)
-      .on('keyup', touchEnd)
-      .on('mousedown', touchStart)
-      .on('mouseup', touchEnd)
-      .attr('width', ctx.svgDS.width)
-      .attr('height', ctx.svgDS.height);
-    drawThread(getThread());
-    drawNeedles(getNeedles());
-    drawStatusText(getStatusText());
-    drawGameOver(getGameOver());
-  };
-
-  // Update screen. this function is called every frame.
-  //   before *1    result
-  //   false  false false
-  //   false  true  false
-  //   true   false false
-  //   true   true  true
-  // *1 moveThread(), detectCollision()
-  var update = function update() {
-    console.log('update() enter');
-    // Move objects
-    var doContinue = moveThread();
-    moveNeedles();
-    doContinue = detectCollision() && doContinue;
-    // Update screen
-    drawThread(getThread());
-    drawNeedles(getNeedles());
-    drawStatusText(getStatusText());
-    // GAME OVER
-    if (!doContinue) {
-      moveGameOver();
-      drawGameOver(getGameOver());
-      setGameOver();
-    }
+    changeScreen(SCR_INITIAL);
   };
 
   var randNumBetween = function randNumBetween(start, end) {
@@ -168,47 +131,109 @@ window.ItoToShi = (function() {
       maxA: 10,
       hovering: false,
       threadGameOverGapY: 10,
-      isGameOver: false,
-      isInitial: true,
       theTimer: null
     };
   };
 
-  var getState = function getState() {
-    if (ctx.isGameOver) {
-      return ST_GAMEOVER;
-    } else if (ctx.isInitial) {
-      return ST_INITIAL;
-    } else if (!ctx.theTimer) {
-      return ST_STOPPED;
-    } else {
-      return ST_RUNNING;
-    }
-  };
-
-  var setGameOver = function setGameOver() {
-    clearInterval(ctx.theTimer);
-    ctx.theTimer = null;
-    ctx.isGameOver = true;
-  };
-
+  var touchFn;
   // 1. Initial -> (unset isInitial) -> Running
   // 2. Running -> (set hovering) -> Running
   // 3. Stopped -> Running
   // 4. GameOver -> Initial -> (unset isInitial) -> Running
   var touchStart = function touchStart() {
     d3.event.preventDefault();    // Don't propagate click event to outside <svg> tag
-    var state = getState();
-    if (state & (ST_INITIAL | ST_STOPPED)) {
-      ctx.isInitial = false;
-      ctx.theTimer = setInterval(update, INTERVAL);
-    } else if (state & ST_RUNNING) {
-      ctx.hovering = true;
-    } else if (state & ST_GAMEOVER) {
-      init();
-      ctx.isInitial = false;
-      ctx.theTimer = setInterval(update, INTERVAL);
+    touchFn();
+  };
+
+  var changeScreen = function changeScreen(screen) {
+    if (screen === SCR_INITIAL) {
+      // Update draw function
+      if (ctx.theTimer) clearInterval(ctx.theTimer);
+      ctx.theTimer = setInterval(updateAtInitial, INTERVAL_AT_INITIAL);
+      // Update touch function
+      touchFn = touchStartAtInitial;
+
+    // TODO
+    // } else if (screen === SCR_SELECT_MODE) {
+    //   // Update draw function
+    //   if (ctx.theTimer) clearInterval(ctx.theTimer);
+    //   ctx.theTimer = setInterval(updateAtSelectMode, INTERVAL_AT_SELECT_MODE);
+    //   // Update touch function
+    //   touchFn = touchStartAtSelectMode;
+
+    } else if (screen === SCR_SELECT_MODE || screen === SCR_RUNNING) {
+      // Update draw function
+      if (ctx.theTimer) clearInterval(ctx.theTimer);
+      ctx.theTimer = setInterval(updateAtRunning, INTERVAL_AT_RUNNING);
+      // Update touch function
+      touchFn = touchStartAtRunning;
+
+    } else if (screen === SCR_GAMEOVER) {
+      // Update draw function
+      if (ctx.theTimer) clearInterval(ctx.theTimer);
+      updateAtGameOver();
+      // ctx.theTimer = null;
+      // ctx.theTimer = setInterval(updateAtGameOver, INTERVAL_AT_GAMEOVER);
+      // Update touch function
+      touchFn = touchStartAtGameOver;
     }
+  };
+
+  var touchStartAtInitial = function touchStartAtInitial() {
+    changeScreen(SCR_SELECT_MODE);
+  };
+
+  var updateAtInitial = function updateAtInitial() {
+    console.log('updateAtInitial() enter');
+    // Draw initial screen
+    $svg = d3.select("body").select("svg")
+      .on('touchstart', touchStart)
+      .on('touchend', touchEnd)
+      .on('keydown', touchStart)
+      .on('keyup', touchEnd)
+      .on('mousedown', touchStart)
+      .on('mouseup', touchEnd)
+      .attr('width', ctx.svgDS.width)
+      .attr('height', ctx.svgDS.height);
+    drawThread(getThread());
+    drawNeedles(getNeedles());
+    drawStatusText(getStatusText());
+    drawGameOver(getGameOver());
+  };
+
+  var touchStartAtSelectMode = function touchStartAtSelectMode() {
+    changeScreen(SCR_RUNNING);
+  };
+
+  var touchStartAtRunning = function touchStartAtRunning() {
+    ctx.hovering = true;
+  };
+
+  var updateAtRunning = function updateAtRunning() {
+    console.log('updateAtRunning() enter');
+    // Move objects
+    var doContinue = moveThread();
+    moveNeedles();
+    doContinue = detectCollision() && doContinue;
+    // Update screen
+    drawThread(getThread());
+    drawNeedles(getNeedles());
+    drawStatusText(getStatusText());
+    // GAME OVER
+    if (!doContinue) {
+      changeScreen(SCR_GAMEOVER);
+    }
+  };
+
+  var touchStartAtGameOver = function touchStartAtGameOver() {
+    init();
+    drawGameOver(getGameOver());
+    changeScreen(SCR_RUNNING);
+  };
+
+  var updateAtGameOver = function updateAtGameOver() {
+    moveGameOver();
+    drawGameOver(getGameOver());
   };
 
   var touchEnd = function touchEnd() {
@@ -298,12 +323,12 @@ window.ItoToShi = (function() {
     $needles.each(function(d) {
       // http://stackoverflow.com/questions/26903355/how-to-cancel-scheduled-transition-in-d3
         d3.select(this)
-          .transition().duration(d.animate ? INTERVAL : 0)
+          .transition().duration(d.animate ? INTERVAL_AT_RUNNING : 0)
           .attr('transform', 'translate(' + d.x + ',' + d.y + ')');
     });
 
     $needleChildren
-      .transition().duration(INTERVAL * 3)
+      .transition().duration(INTERVAL_AT_RUNNING * 3)
       .attr('height', function (d) { return d.height; });
 
     // Exit
@@ -340,7 +365,7 @@ window.ItoToShi = (function() {
       .attr('r', function(d) { return d.r; })
       .attr('fill', function(d) { return d.fill; });
     // Update
-    $thread.transition().duration(INTERVAL)
+    $thread.transition().duration(INTERVAL_AT_RUNNING)
       .attr('transform', function(d) { return 'translate(' + d.cx + ',' + d.cy + ')'; });
   };
 

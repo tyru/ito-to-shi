@@ -131,6 +131,10 @@ window.ItoToShi = (function() {
         x: 60, y: 12, fontSize: '12px', text: '',
         score: 0, mode: mode
       }],
+      levelUpDS: [{  // <text>
+        x: -99, y: -99, fontSize: '18px', text: 'Lv. UP', fill: 'red',
+        dy: -1, hoverHeight: 20
+      }],
       scoreMmMap: scoreMmMap,
       level: 0,
       gameOverDS: [],    // <text>
@@ -259,6 +263,7 @@ window.ItoToShi = (function() {
 
   var RunningScreen = function RunningScreen() {
     this.init = function init() {
+      drawLevelUpText(getLevelUpText());
       drawThread(getThread());
       makeNeedles();
       drawNeedles(getNeedles());
@@ -268,11 +273,14 @@ window.ItoToShi = (function() {
       // Move objects
       var doContinue = moveThread();
       moveNeedles();
+      var oldLevel = ctx.level;
       doContinue = detectCollision() && doContinue;
+      moveLevelUpText(oldLevel !== ctx.level);
       // Update screen
       drawThread(getThread());
       drawNeedles(getNeedles());
       drawStatusText(getStatusText());
+      drawLevelUpText(getLevelUpText());
       // GAME OVER
       if (!doContinue) {
         screenDispatcher.changeScreen(SCR_GAMEOVER);
@@ -330,6 +338,44 @@ window.ItoToShi = (function() {
     $pressStart.enter().append('text')
       .attr('id', 'pressStart')
       .attr('class', 'disable-select')
+      .attr('font-size', function(d) { return d.fontSize; })
+      .text(function(d) { return d.text; });
+    // Update
+    $pressStart
+      .attr('x', function(d) { return d.x; })
+      .attr('y', function(d) { return d.y; })
+      .attr('fill', function(d) { return d.fill; })
+    // Exit
+    $pressStart.exit().remove();
+  };
+
+  // ======================= (Running screen) "Lv. UP" text =======================
+  // * Get / Move / Draw "Lv. UP" text object
+
+  var getLevelUpText = function getLevelUpText() {
+    return $svg.selectAll('#levelUp').data(ctx.levelUpDS);
+  };
+
+  var moveLevelUpText = function moveLevelUpText(show) {
+    var dataset = ctx.levelUpDS[0];
+    if (show) { // Start
+      dataset.x = ctx.threadDS[0].cx;
+      dataset.y = ctx.threadDS[0].cy;
+      dataset.endY = dataset.y - dataset.hoverHeight;
+    } else if (dataset.y >= dataset.endY) { // Hovering
+      dataset.y += dataset.dy;
+    } else if (dataset.endY) { // End
+      dataset.x = dataset.y = -99;
+      delete dataset.endY;
+    }
+  };
+
+  var drawLevelUpText = function drawLevelUpText($pressStart) {
+    // Enter
+    $pressStart.enter().append('text')
+      .attr('id', 'levelUp')
+      .attr('class', 'disable-select')
+      .attr('style', 'font-weight: bold;')
       .attr('font-size', function(d) { return d.fontSize; })
       .text(function(d) { return d.text; });
     // Update

@@ -330,7 +330,6 @@ window.ItoToShi = (function() {
     var bbox = document.getElementById('pressStart').getBBox();
     dataset.x = ctx.svgDS.width / 2 - bbox.width / 2;
     dataset.y = ctx.svgDS.height / 2 - bbox.height / 2;
-    ctx.pressStartDS = [dataset];
   };
 
   var drawPressStart = function drawPressStart($pressStart) {
@@ -622,7 +621,6 @@ window.ItoToShi = (function() {
     var bbox = document.getElementById('gameOver').getBBox();
     dataset.x = ctx.svgDS.width / 2 - bbox.width / 2;
     dataset.y = ctx.svgDS.height / 2 - bbox.height / 2;
-    ctx.gameOverDS = [dataset];
   };
 
   var drawGameOver = function drawGameOver($gameover) {

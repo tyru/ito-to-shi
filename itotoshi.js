@@ -120,7 +120,7 @@ window.ItoToShi = (function() {
       svgDS: svgDS,
       needleGroupDS: [], // <g>
       needleDS: [  // <rect>
-        {x: 0, y: 0, fill: 'gray', width: 10, height: 999, animate: true},
+        {x: 0, y: 0, fill: 'gray', width: 10, height: svgDS.height, animate: true},
         {x: 2, y: NEEDLE_WHOLE_DY, fill: 'white', width: 6,
           height: scoreMmMap[0][1], animate: true}
       ],

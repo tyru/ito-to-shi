@@ -8,10 +8,10 @@ var through2 = require('through2');
 
 gulp.task('build', function() {
   return gulp.src('./src/**/*.js')
-    .on("error", function (err) {
-      console.log("Error : " + err.message);
-      console.log(err.stack);
-    })
+    // .on("error", function (err) {
+    //   console.log("Error : " + err.message);
+    //   console.log(err.stack);
+    // })
     .pipe(through2.obj(function(file, encode, callback) {
         // fileにはsrcで読み込んだファイルの情報が引き渡される
         // file.pathを利用してbrowserifyインスタンスを生成する
@@ -19,7 +19,8 @@ gulp.task('build', function() {
           .transform('babelify', {presets: ["es2015"]})
           .bundle(function(err, res) {
             if (err) {
-              console.log(err);
+              console.log("Error : " + err.message);
+              console.log(err.stack);
             }
             // bundleを実行し，処理結果でcontentsを上書きする
             file.contents = res;

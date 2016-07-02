@@ -11,8 +11,6 @@ window.ItoToShi = (function() {
   var HARD_MODE = 'HARD';
   var LUNATIC_MODE = 'LUNATIC';
   var NEEDLE_HOLE_DY = 1;
-  var NEEDLE_INDEX = 0;
-  var NEEDLE_HOLE_INDEX = 1;
   var $svg;
   var ctx;
   var screenDispatcher;
@@ -126,11 +124,15 @@ window.ItoToShi = (function() {
     return {
       svgDS: svgDS,
       needleGroupDS: [], // <g>
-      needleDS: [  // <rect>
-        {x: 0, y: 0, fill: 'gray', width: 10, height: svgDS.height, animate: true},
-        {x: 2, y: NEEDLE_HOLE_DY, fill: 'white', width: 6,
-          height: scoreMmMap[0][1], animate: true}
-      ],
+      needlePoleDS: [], // <rect>
+      needleHoleDS: [], // <rect>
+      needlePoleDSTemplate: {  // <rect>
+        x: 0, y: 0, fill: 'gray', width: 10, height: svgDS.height, animate: true
+      },
+      needleHoleDSTemplate: {  // <rect>
+        x: 2, y: NEEDLE_HOLE_DY, fill: 'white',
+        width: 6, height: scoreMmMap[0][1], animate: true
+      },
       threadDS: [{  // <circle>
         fill: 'red', cx: svgDS.width * 0.33, cy: svgDS.height * 0.33, r: 5, a: 1
       }],
@@ -142,13 +144,13 @@ window.ItoToShi = (function() {
         x: -99, y: -99, fontSize: '18px', text: 'Lv. UP', fill: 'red',
         dy: -1, hoverHeight: 20
       }],
-      scoreMmMap: scoreMmMap,
-      level: 0,
       gameOverDS: [],    // <text>
       selectModeScreenDS: [],    // <g>
       selectModeButtonRectDS: [],    // <rect>
       selectModeButtonTextDS: [],    // <text>
       pressStartDS: [],    // <text>
+      scoreMmMap: scoreMmMap,
+      level: 0,
       needleDx: needleDx,
       needleGapX: -10,
       Da: threadDy,
@@ -469,28 +471,27 @@ window.ItoToShi = (function() {
   // * Get / Move / Draw needles objects
 
   var makeNeedles = function makeNeedles() {
-    // Generate needle objects.
-    var needleGroupDS = [];
     // To place the next needle when hole height (mm) is changed,
     // We must have enough number of needles on screen (even if invisible).
     var needleNum = Math.floor(ctx.svgDS.width / ctx.scoreMmMap[0][2] + 2);
     // First object is placed at 'ctx.svgDS.width'.
     var objX = ctx.svgDS.width;
     for (var i = 0; i < needleNum; i++) {
-      needleGroupDS.push({
+      ctx.needleGroupDS.push({
         x: objX,
         y: randNumBetween(0, ctx.svgDS.height - ctx.scoreMmMap[0][1]),
-        passed: false, needleRects: cloneObject(ctx.needleDS)
+        passed: false
       });
+      ctx.needlePoleDS.push(cloneObject(ctx.needlePoleDSTemplate));
+      ctx.needleHoleDS.push(cloneObject(ctx.needleHoleDSTemplate));
       objX += ctx.scoreMmMap[0][2];
     }
-    ctx.needleGroupDS = needleGroupDS;
   };
 
   // Need to access to moving objects via D3 API.
   // (Saving to '$needles' variable leaves old objects in screen...)
   var getNeedles = function getNeedles() {
-    return $svg.selectAll('.needle').data(ctx.needleGroupDS);
+    return $svg.selectAll('g.needle').data(ctx.needleGroupDS);
   };
 
   var moveNeedles = function moveNeedles() {
@@ -520,14 +521,15 @@ window.ItoToShi = (function() {
       var distanceX = getDistanceXByLevel(level);
       var mm = getMmByLevel(level);
       // Move the needle to the right.
-      var d = ctx.needleGroupDS[willMove];
-      d.x = maxRightX + distanceX;
-      d.y = randNumBetween(0, ctx.svgDS.height - mm);
-      d.animate = false;
-      d.passed = false;
+      var needleGroupDS = ctx.needleGroupDS[willMove];
+      needleGroupDS.x = maxRightX + distanceX;
+      needleGroupDS.y = randNumBetween(0, ctx.svgDS.height - mm);
+      needleGroupDS.animate = false;
+      needleGroupDS.passed = false;
       if (level > ctx.level) {
         // Change next level needle's height.
-        d.needleRects[NEEDLE_HOLE_INDEX].height = mm;
+        var needlePoleDS = ctx.needlePoleDS[willMove];
+        needlePoleDS.height = mm;
         // Add a new needle if necessary.
         var nextNeedleNum = Math.floor(ctx.svgDS.width / getDistanceXByLevel(ctx.level + 1) + 2);
         assert(nextNeedleNum >= ctx.needleGroupDS.length,
@@ -535,13 +537,15 @@ window.ItoToShi = (function() {
         if (nextNeedleNum > ctx.needleGroupDS.length) {
           // Re-calculate the necessary number of needles.
           nextNeedleNum = nextNeedleNum - ctx.needleGroupDS.length;
-          var objX = d.x + distanceX;
+          var objX = needleGroupDS.x + distanceX;
           for (var i = 0; i < nextNeedleNum; i++) {
             ctx.needleGroupDS.push({
               x: objX,
               y: randNumBetween(0, ctx.svgDS.height - mm),
-              passed: false, needleRects: cloneObject(ctx.needleDS)
+              passed: false
             });
+            ctx.needlePoleDS.push(cloneObject(ctx.needlePoleDSTemplate));
+            ctx.needleHoleDS.push(cloneObject(ctx.needleHoleDSTemplate));
             objX += distanceX;
           }
         }
@@ -550,20 +554,24 @@ window.ItoToShi = (function() {
   };
 
   var drawNeedles = function drawNeedles($needles) {
-    function drawRect($selection, i) {
-      $selection
-        .append('rect.' + (i === NEEDLE_INDEX ? 'pole' : 'hole'))
-        .attr('x', function(d) { return d.needleRects[i].x; })
-        .attr('y', function(d) { return d.needleRects[i].y; })
-        .attr('fill', function(d) { return d.needleRects[i].fill; })
-        .attr('width', function(d) { return d.needleRects[i].width; })
-        .attr('height', function (d) { return d.needleRects[i].height; });
-    }
-
     // Enter
-    var $group = $needles.enter().append('g.needle');
-    drawRect($group, NEEDLE_INDEX);
-    drawRect($group, NEEDLE_HOLE_INDEX);
+    $needles.enter().append('g.needle');
+    var $needlePoles = $needles.selectAll('g.needle rect.pole').data(ctx.needlePoleDS);
+    $needlePoles
+      .enter().append('rect.pole')
+        .attr('x', d3.f('x'))
+        .attr('y', d3.f('y'))
+        .attr('fill', d3.f('fill'))
+        .attr('width', d3.f('width'))
+        .attr('height', d3.f('height'));
+    var $needleHoles = $needles.selectAll('g.needle rect.hole').data(ctx.needleHoleDS);
+    $needleHoles
+      .enter().append('rect.hole')
+        .attr('x', d3.f('x'))
+        .attr('y', d3.f('y'))
+        .attr('fill', d3.f('fill'))
+        .attr('width', d3.f('width'))
+        .attr('height', d3.f('height'));
 
     // Update
     // Move with animation.
@@ -573,12 +581,7 @@ window.ItoToShi = (function() {
           .transition().duration(shouldAnimate(d) ? THIRTY_FPS : 0)
           .attr('transform', 'translate(' + d.x + ',' + d.y + ')');
     });
-
-    $needles.select('g.needle rect.hole').data(function () {
-      return ctx.needleGroupDS.map(function (value) {
-        return value.needleRects[NEEDLE_HOLE_INDEX];
-      });
-    }).attr('height', d3.f('height'))
+    $needleHoles.attr('height', d3.f('height'));
 
     // Exit
     $needles.exit().remove();

@@ -10,7 +10,9 @@ window.ItoToShi = (function() {
   var NORMAL_MODE = 'NORMAL';
   var HARD_MODE = 'HARD';
   var LUNATIC_MODE = 'LUNATIC';
-  var NEEDLE_WHOLE_DY = 1;
+  var NEEDLE_HOLE_DY = 1;
+  var NEEDLE_INDEX = 0;
+  var NEEDLE_HOLE_INDEX = 1;
   var $svg;
   var ctx;
   var screenDispatcher;
@@ -41,6 +43,15 @@ window.ItoToShi = (function() {
   var randNumBetween = function randNumBetween(start, end) {
     return Math.random() * (end - start) + start;
   };
+
+  var cloneObject = function cloneObject(obj) {
+    if (typeof obj !== 'object') return obj;
+    var newObj = {}, key;
+    for (key in obj) {
+      newObj[key] = cloneObject(obj[key]);
+    }
+    return newObj;
+  }
 
   var assert = function assert(cond, msg) {
     if (!cond) {
@@ -121,7 +132,7 @@ window.ItoToShi = (function() {
       needleGroupDS: [], // <g>
       needleDS: [  // <rect>
         {x: 0, y: 0, fill: 'gray', width: 10, height: svgDS.height, animate: true},
-        {x: 2, y: NEEDLE_WHOLE_DY, fill: 'white', width: 6,
+        {x: 2, y: NEEDLE_HOLE_DY, fill: 'white', width: 6,
           height: scoreMmMap[0][1], animate: true}
       ],
       threadDS: [{  // <circle>
@@ -486,7 +497,7 @@ window.ItoToShi = (function() {
       needleGroupDS.push({
         x: objX,
         y: randNumBetween(0, ctx.svgDS.height - ctx.scoreMmMap[0][1]),
-        passed: false
+        passed: false, needleRects: cloneObject(ctx.needleDS)
       });
       objX += ctx.scoreMmMap[0][2];
     }
@@ -502,20 +513,26 @@ window.ItoToShi = (function() {
   var moveNeedles = function moveNeedles() {
     var willMove = -1;
     var maxRightX = -1;
+    var rightsideNeedleNum = 0;
+    var thread = ctx.threadDS[0];
     ctx.needleGroupDS = ctx.needleGroupDS.map(function(d, i) {
       if (d.x + ctx.needleDx < ctx.needleGapX) {
+        // Next d.x is left of visible screen.
         assert(willMove === -1, '0 <= moving needles <= 1');
         willMove = i;
       } else {
         d.x += ctx.needleDx;
         d.animate = true;
       }
+      if (d.x > thread.cx) rightsideNeedleNum++;
       maxRightX = Math.max(maxRightX, d.x);
       return d;
     });
     if (willMove >= 0) {
+      // Move a needle to rightmost at screen.
       // Determine if I must calculate the distanceX by next level or current level.
-      var level = getCurrentScore() + ctx.needleGroupDS.length >= getScoreByLevel(ctx.level + 1) ?
+      var nextLvScore = getScoreByLevel(ctx.level + 1);
+      var level = getCurrentScore() + rightsideNeedleNum >= nextLvScore ?
                     ctx.level + 1 : ctx.level;
       var distanceX = getDistanceXByLevel(level);
       var mm = getMmByLevel(level);
@@ -525,40 +542,51 @@ window.ItoToShi = (function() {
       d.y = randNumBetween(0, ctx.svgDS.height - mm);
       d.animate = false;
       d.passed = false;
-      // Add a new needle if necessary.
-      var nextNeedleNum = Math.floor(ctx.svgDS.width / getDistanceXByLevel(ctx.level + 1) + 2);
-      assert(nextNeedleNum >= ctx.needleGroupDS.length,
-             'Lv.UP must not cause getMmByLevel() to be smaller number');
-      if (level > ctx.level && nextNeedleNum > ctx.needleGroupDS.length) {
-        // Re-calculate the necessary number of needles.
-        nextNeedleNum = nextNeedleNum - ctx.needleGroupDS.length;
-        var objX = d.x + distanceX;
-        for (var i = 0; i < nextNeedleNum; i++) {
-          ctx.needleGroupDS.push({
-            x: objX,
-            y: randNumBetween(0, ctx.svgDS.height - mm),
-            passed: false
-          });
-          objX += distanceX;
+      if (level > ctx.level) {
+        // Change next level needle's height.
+        d.needleRects[NEEDLE_HOLE_INDEX].height = getMmByLevel(level);
+        // Add a new needle if necessary.
+        var nextNeedleNum = Math.floor(ctx.svgDS.width / getDistanceXByLevel(ctx.level + 1) + 2);
+        assert(nextNeedleNum >= ctx.needleGroupDS.length,
+              'Lv.UP must not cause getMmByLevel() to be smaller number');
+        if (nextNeedleNum > ctx.needleGroupDS.length) {
+          // Re-calculate the necessary number of needles.
+          nextNeedleNum = nextNeedleNum - ctx.needleGroupDS.length;
+          var objX = d.x + distanceX;
+          for (var i = 0; i < nextNeedleNum; i++) {
+            ctx.needleGroupDS.push({
+              x: objX,
+              y: randNumBetween(0, ctx.svgDS.height - mm),
+              passed: false, needleRects: cloneObject(ctx.needleDS)
+            });
+            objX += distanceX;
+          }
         }
       }
     }
   };
 
   var drawNeedles = function drawNeedles($needles) {
-    // Enter
-    $needles.enter().append('g')
-      .attr('class', 'needle');
+    function drawRect($selection, i) {
+      $selection
+        .append('rect')
+        .attr('class', i === NEEDLE_INDEX ? 'pole' : 'hole')
+        .attr('x', function(d) { return d.needleRects[i].x; })
+        .attr('y', function(d) { return d.needleRects[i].y; })
+        .attr('fill', function(d) { return d.needleRects[i].fill; })
+        .attr('width', function(d) { return d.needleRects[i].width; })
+        .attr('height', function (d) { return d.needleRects[i].height; })
+    }
 
-    var $needleChildren = $needles.selectAll('rect').data(ctx.needleDS);
-    $needleChildren
-      .enter().append('rect')
-      .attr('x', function(d) { return d.x; })
-      .attr('y', function(d) { return d.y; })
-      .attr('fill', function(d) { return d.fill; })
-      .attr('width', function(d) { return d.width; });
+    // Enter
+    var $group = $needles
+      .enter().append('g')
+        .attr('class', 'needle')
+    drawRect($group, NEEDLE_INDEX);
+    drawRect($group, NEEDLE_HOLE_INDEX);
 
     // Update
+    // Move with animation.
     $needles.each(function(d) {
       // http://stackoverflow.com/questions/26903355/how-to-cancel-scheduled-transition-in-d3
         d3.select(this)
@@ -566,9 +594,12 @@ window.ItoToShi = (function() {
           .attr('transform', 'translate(' + d.x + ',' + d.y + ')');
     });
 
-    $needleChildren
-      .transition().duration(shouldAnimate() ? THIRTY_FPS * 3 : 0)
-      .attr('height', function (d) { return d.height; });
+    $needles.selectAll('g.needle rect.hole').data(function (d, i) {
+      return ctx.needleGroupDS.map(function (value) {
+        return value.needleRects[NEEDLE_HOLE_INDEX];
+      });
+    })
+      .attr('height', function (d) { return d.height; })
 
     // Exit
     $needles.exit().remove();
@@ -709,13 +740,12 @@ window.ItoToShi = (function() {
     getNeedles().each(function(d) {
       if (d.passed) return;
       var mm = getMmByLevel(ctx.level);
-      var fromY = d.y + NEEDLE_WHOLE_DY;
+      var fromY = d.y + NEEDLE_HOLE_DY;
       var toY = fromY + mm;
       if (thread.cx >= d.x) {
         if (fromY <= thread.cy - thread.r && thread.cy + thread.r <= toY) { // Passed
           statusText.score++;
           ctx.level = calcLevelByScore(statusText.score); // May Lv. Up
-          ctx.needleDS[1].height = getMmByLevel(ctx.level);
           d.passed = true;
         } else {  // Failed
           doContinue = false;

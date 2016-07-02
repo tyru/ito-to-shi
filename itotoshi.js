@@ -350,13 +350,15 @@ window.ItoToShi = (function() {
       .attr('class', 'disable-select')
       .attr('font-size', function(d) { return d.fontSize; })
       .text(function(d) { return d.text; });
+
+    // Exit
+    $pressStart.exit().remove();
+
     // Update
     $pressStart
       .attr('x', function(d) { return d.x; })
       .attr('y', function(d) { return d.y; })
       .attr('fill', function(d) { return d.fill; })
-    // Exit
-    $pressStart.exit().remove();
   };
 
   // ======================= (Running screen) "Lv. UP" text =======================
@@ -388,13 +390,15 @@ window.ItoToShi = (function() {
       .attr('style', 'font-weight: bold;')
       .attr('font-size', function(d) { return d.fontSize; })
       .text(function(d) { return d.text; });
+
+    // Exit
+    $pressStart.exit().remove();
+
     // Update
     $pressStart
       .attr('x', function(d) { return d.x; })
       .attr('y', function(d) { return d.y; })
       .attr('fill', function(d) { return d.fill; })
-    // Exit
-    $pressStart.exit().remove();
   };
 
   // ======================= Select mode screen =======================
@@ -544,7 +548,7 @@ window.ItoToShi = (function() {
       d.passed = false;
       if (level > ctx.level) {
         // Change next level needle's height.
-        d.needleRects[NEEDLE_HOLE_INDEX].height = getMmByLevel(level);
+        d.needleRects[NEEDLE_HOLE_INDEX].height = mm;
         // Add a new needle if necessary.
         var nextNeedleNum = Math.floor(ctx.svgDS.width / getDistanceXByLevel(ctx.level + 1) + 2);
         assert(nextNeedleNum >= ctx.needleGroupDS.length,
@@ -660,12 +664,14 @@ window.ItoToShi = (function() {
       .attr('class', 'disable-select')
       .attr('font-size', function(d) { return d.fontSize; })
       .text(function(d) { return d.text; });
+
+    // Exit
+    $gameover.exit().remove();
+
     // Update
     $gameover
       .attr('x', function(d) { return d.x; })
       .attr('y', function(d) { return d.y; })
-    // Exit
-    $gameover.exit().remove();
   };
 
   // ======================= Status text =======================

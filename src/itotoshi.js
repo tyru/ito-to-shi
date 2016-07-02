@@ -1,32 +1,32 @@
 import d3 from 'd3'
 import 'd3-jetpack'
 
-window.ItoToShi = (function() {
+(function($window, $document) {
   'use strict';
 
-  var THIRTY_FPS = 1000.0 / 30.0;
-  var SCR_INITIAL = 1;
-  var SCR_SELECT_MODE = 2;
-  var SCR_RUNNING = 3;
-  var SCR_GAMEOVER = 4;
-  var EASY_MODE = 'EASY';
-  var NORMAL_MODE = 'NORMAL';
-  var HARD_MODE = 'HARD';
-  var LUNATIC_MODE = 'LUNATIC';
-  var NEEDLE_HOLE_DY = 1;
-  var $svg;
-  var ctx;
-  var screenDispatcher;
-  var selectedMode = '';
+  const THIRTY_FPS = 1000.0 / 30.0;
+  const SCR_INITIAL = 1;
+  const SCR_SELECT_MODE = 2;
+  const SCR_RUNNING = 3;
+  const SCR_GAMEOVER = 4;
+  const EASY_MODE = 'EASY';
+  const NORMAL_MODE = 'NORMAL';
+  const HARD_MODE = 'HARD';
+  const LUNATIC_MODE = 'LUNATIC';
+  const NEEDLE_HOLE_DY = 1;
+  let $svg;
+  let ctx;
+  let screenDispatcher;
+  let selectedMode = '';
 
-  var init = function init() {
+  const init = function init() {
     screenDispatcher = new ScreenDispatcher();
     screenDispatcher.register(SCR_INITIAL, new InitialScreen());
     screenDispatcher.register(SCR_SELECT_MODE, new SelectModeScreen());
     screenDispatcher.register(SCR_RUNNING, new RunningScreen());
     screenDispatcher.register(SCR_GAMEOVER, new GameOverScreen());
 
-    var svgDS = getSvgDS();
+    const svgDS = getSvgDS();
     $svg = d3.select("body").select("svg")
       .on('touchstart keydown mousedown', screenDispatcher.touchStart)
       .on('touchend keyup mouseup', screenDispatcher.touchEnd)
@@ -37,41 +37,41 @@ window.ItoToShi = (function() {
     screenDispatcher.changeScreen(SCR_INITIAL);
   };
 
-  var randNumBetween = function randNumBetween(start, end) {
+  const randNumBetween = function randNumBetween(start, end) {
     return Math.random() * (end - start) + start;
   };
 
-  var cloneObject = function cloneObject(obj) {
+  const cloneObject = function cloneObject(obj) {
     if (typeof obj !== 'object') return obj;
-    var newObj = {}, key;
+    let newObj = {}, key;
     for (key in obj) {
       newObj[key] = cloneObject(obj[key]);
     }
     return newObj;
-  }
+  };
 
-  var assert = function assert(cond, msg) {
+  const assert = function assert(cond, msg) {
     if (!cond) {
       throw new Error('Assertion Error' + (msg ? ': ' + msg : ''));
     }
   };
 
-  var shouldAnimate = function shouldAnimate(dataset) {
+  const shouldAnimate = function shouldAnimate(dataset) {
     if (dataset && !dataset.animate)
       return false;
     return ctx.animateGlobal;
   };
 
-  var getSvgDS = function getSvgDS() {
+  const getSvgDS = function getSvgDS() {
     return {
       width: 320,
       height: 320
     };
   };
 
-  var getInitVars = function getInitVars(mode) {
-    var svgDS = getSvgDS();
-    var scoreMmMap, needleDx, threadDy;
+  const getInitVars = function getInitVars(mode) {
+    const svgDS = getSvgDS();
+    let scoreMmMap, needleDx, threadDy;
     if (mode === EASY_MODE) {
       scoreMmMap = [
         // [least score, hole height (mm), distanceX]
@@ -166,7 +166,8 @@ window.ItoToShi = (function() {
     };
   };
 
-  var enableFullscreen = function enableFullscreen(elem) {
+  const enableFullscreen = function enableFullscreen() {
+    const elem = $document.getElementById("screen");
     if (elem.requestFullscreen) {
       elem.requestFullscreen();
     } else if (elem.msRequestFullscreen) {
@@ -182,9 +183,9 @@ window.ItoToShi = (function() {
   // * Dispatches *Screen instances' methods.
   // * Changes current screen ID.
 
-  var ScreenDispatcher = function ScreenDispatcher() {
-    var screens = {};
-    var currentScreenId = SCR_INITIAL;
+  const ScreenDispatcher = function ScreenDispatcher() {
+    const screens = {};
+    let currentScreenId = SCR_INITIAL;
 
     this.register = function register(id, func) {
       screens[id] = func;
@@ -196,7 +197,7 @@ window.ItoToShi = (function() {
         clearInterval(ctx.theTimer);
         ctx.theTimer = null;
       }
-      var screen = screens[id];
+      const screen = screens[id];
       if (!screen) {
         return;
       }
@@ -215,15 +216,15 @@ window.ItoToShi = (function() {
 
     this.touchStart = function touchStart() {
       d3.event.preventDefault();    // Don't propagate click event to outside <svg> tag
-      screens[currentScreenId].touchStart.apply(this, arguments);
+      screens[currentScreenId].touchStart(...arguments);
     };
 
     this.touchEnd = function touchEnd() {
-      screens[currentScreenId].touchEnd.apply(this, arguments);
+      screens[currentScreenId].touchEnd(...arguments);
     };
   };
 
-  var InitialScreen = function InitialScreen() {
+  const InitialScreen = function InitialScreen() {
     this.init = function init() {
       drawThread(getThread());
       makeNeedles();
@@ -240,10 +241,9 @@ window.ItoToShi = (function() {
       movePressStart();
       drawPressStart(getPressStart());
     };
-    var blink = true;
+    let blink = true;
     this.update = function update() {
       blink = !blink;
-
     };
     this.getInterval = function getInterval() {
       return 500;
@@ -257,7 +257,7 @@ window.ItoToShi = (function() {
     };
   };
 
-  var SelectModeScreen = function SelectModeScreen() {
+  const SelectModeScreen = function SelectModeScreen() {
     this.init = function init() {
       makeSelectModeScreen();
       drawSelectModeScreen(getSelectModeScreen());
@@ -274,7 +274,7 @@ window.ItoToShi = (function() {
     };
   };
 
-  var RunningScreen = function RunningScreen() {
+  const RunningScreen = function RunningScreen() {
     this.init = function init() {
       drawLevelUpText(getLevelUpText());
       drawThread(getThread());
@@ -284,9 +284,9 @@ window.ItoToShi = (function() {
     };
     this.update = function update() {
       // Move objects
-      var doContinue = moveThread();
+      let doContinue = moveThread();
       moveNeedles();
-      var oldLevel = ctx.level;
+      const oldLevel = ctx.level;
       doContinue = detectCollision() && doContinue;
       moveLevelUpText(oldLevel !== ctx.level);
       // Update screen
@@ -310,8 +310,7 @@ window.ItoToShi = (function() {
     };
   };
 
-  var GameOverScreen = function GameOverScreen() {
-    var that = this;
+  const GameOverScreen = function GameOverScreen() {
     this.init = function init() {
       // Draw at hidden point to get bbox width & height.
       ctx.gameOverDS = [{  // <text>
@@ -334,18 +333,18 @@ window.ItoToShi = (function() {
   // ======================= (Initial screen) "PRESS START" text =======================
   // * Get / Move / Draw "PRESS START" text object
 
-  var getPressStart = function getPressStart() {
+  const getPressStart = function getPressStart() {
     return $svg.selectAll('#pressStart').data(ctx.pressStartDS);
   };
 
-  var movePressStart = function movePressStart() {
-    var dataset = ctx.pressStartDS[0];
-    var bbox = document.getElementById('pressStart').getBBox();
+  const movePressStart = function movePressStart() {
+    const dataset = ctx.pressStartDS[0];
+    const bbox = document.getElementById('pressStart').getBBox();
     dataset.x = ctx.svgDS.width / 2 - bbox.width / 2;
     dataset.y = ctx.svgDS.height / 2 - bbox.height / 2;
   };
 
-  var drawPressStart = function drawPressStart($pressStart) {
+  const drawPressStart = function drawPressStart($pressStart) {
     // Enter
     $pressStart.enter().append('text#pressStart.disable-select')
       .attr('font-size', d3.f('fontSize'))
@@ -364,12 +363,12 @@ window.ItoToShi = (function() {
   // ======================= (Running screen) "Lv. UP" text =======================
   // * Get / Move / Draw "Lv. UP" text object
 
-  var getLevelUpText = function getLevelUpText() {
+  const getLevelUpText = function getLevelUpText() {
     return $svg.selectAll('#levelUp').data(ctx.levelUpDS);
   };
 
-  var moveLevelUpText = function moveLevelUpText(show) {
-    var dataset = ctx.levelUpDS[0];
+  const moveLevelUpText = function moveLevelUpText(show) {
+    const dataset = ctx.levelUpDS[0];
     if (show) { // Start
       dataset.x = ctx.threadDS[0].cx;
       dataset.y = ctx.threadDS[0].cy;
@@ -382,7 +381,7 @@ window.ItoToShi = (function() {
     }
   };
 
-  var drawLevelUpText = function drawLevelUpText($pressStart) {
+  const drawLevelUpText = function drawLevelUpText($pressStart) {
     // Enter
     $pressStart.enter().append('text#levelUp.disable-select')
       .attr('style', 'font-weight: bold;')
@@ -402,11 +401,11 @@ window.ItoToShi = (function() {
   // ======================= Select mode screen =======================
   // * Get / Move / Draw select mode object
 
-  var getSelectModeScreen = function getSelectModeScreen() {
+  const getSelectModeScreen = function getSelectModeScreen() {
     return $svg.selectAll('.selectModeScreen').data(ctx.selectModeScreenDS);
   };
 
-  var makeSelectModeScreen = function makeSelectModeScreen() {
+  const makeSelectModeScreen = function makeSelectModeScreen() {
     ctx.selectModeScreenDS = [{
       x: 0, y: 0, fill: 'black', width: ctx.svgDS.width, height: ctx.svgDS.height
     }];
@@ -424,13 +423,13 @@ window.ItoToShi = (function() {
     ];
   };
 
-  var clearSelectModeScreen = function clearSelectModeScreen() {
+  const clearSelectModeScreen = function clearSelectModeScreen() {
     ctx.selectModeScreenDS = [];
     ctx.selectModeButtonRectDS = [];
     ctx.selectModeButtonTextDS = [];
   };
 
-  var drawSelectModeScreen = function drawSelectModeScreen($selectModeScreen) {
+  const drawSelectModeScreen = function drawSelectModeScreen($selectModeScreen) {
     // Enter
     $selectModeScreen.enter()
       .append('g.selectModeScreen')
@@ -441,8 +440,8 @@ window.ItoToShi = (function() {
         .attr('width', d3.f('width'))
         .attr('height', d3.f('height'))
 
-    var selectMode = function() {
-      var mode = d3.select(this).attr('data-mode');
+    const selectMode = function() {
+      const mode = d3.select(this).attr('data-mode');
       if (mode !== '') selectedMode = mode;
     };
     $selectModeScreen
@@ -477,13 +476,13 @@ window.ItoToShi = (function() {
   // ======================= Needles =======================
   // * Get / Move / Draw needles objects
 
-  var makeNeedles = function makeNeedles() {
+  const makeNeedles = function makeNeedles() {
     // To place the next needle when hole height (mm) is changed,
     // We must have enough number of needles on screen (even if invisible).
-    var needleNum = Math.floor(ctx.svgDS.width / ctx.scoreMmMap[0][2] + 2);
+    const needleNum = Math.floor(ctx.svgDS.width / ctx.scoreMmMap[0][2] + 2);
     // First object is placed at 'ctx.svgDS.width'.
-    var objX = ctx.svgDS.width;
-    for (var i = 0; i < needleNum; i++) {
+    let objX = ctx.svgDS.width;
+    for (let i = 0; i < needleNum; i++) {
       ctx.needleGroupDS.push({
         x: objX,
         y: randNumBetween(0, ctx.svgDS.height - ctx.scoreMmMap[0][1]),
@@ -497,15 +496,15 @@ window.ItoToShi = (function() {
 
   // Need to access to moving objects via D3 API.
   // (Saving to '$needles' variable leaves old objects in screen...)
-  var getNeedles = function getNeedles() {
+  const getNeedles = function getNeedles() {
     return $svg.selectAll('g.needle').data(ctx.needleGroupDS);
   };
 
-  var moveNeedles = function moveNeedles() {
-    var willMove = -1;
-    var maxRightX = -1;
-    var rightsideNeedleNum = 0;
-    var thread = ctx.threadDS[0];
+  const moveNeedles = function moveNeedles() {
+    let willMove = -1;
+    let maxRightX = -1;
+    let rightsideNeedleNum = 0;
+    const thread = ctx.threadDS[0];
     ctx.needleGroupDS = ctx.needleGroupDS.map(function(d, i) {
       if (d.x + ctx.needleDx < ctx.needleGapX) {
         // Next d.x is left of visible screen.
@@ -522,30 +521,30 @@ window.ItoToShi = (function() {
     if (willMove >= 0) {
       // Move a needle to rightmost at screen.
       // Determine if I must calculate the distanceX by next level or current level.
-      var nextLvScore = getScoreByLevel(ctx.level + 1);
-      var level = getCurrentScore() + rightsideNeedleNum >= nextLvScore ?
+      const nextLvScore = getScoreByLevel(ctx.level + 1);
+      const level = getCurrentScore() + rightsideNeedleNum >= nextLvScore ?
                     ctx.level + 1 : ctx.level;
-      var distanceX = getDistanceXByLevel(level);
-      var mm = getMmByLevel(level);
+      const distanceX = getDistanceXByLevel(level);
+      const mm = getMmByLevel(level);
       // Move the needle to the right.
-      var needleGroupDS = ctx.needleGroupDS[willMove];
+      const needleGroupDS = ctx.needleGroupDS[willMove];
       needleGroupDS.x = maxRightX + distanceX;
       needleGroupDS.y = randNumBetween(0, ctx.svgDS.height - mm);
       needleGroupDS.animate = false;
       needleGroupDS.passed = false;
       if (level > ctx.level) {
         // Change next level needle's height.
-        var needlePoleDS = ctx.needlePoleDS[willMove];
+        const needlePoleDS = ctx.needlePoleDS[willMove];
         needlePoleDS.height = mm;
         // Add a new needle if necessary.
-        var nextNeedleNum = Math.floor(ctx.svgDS.width / getDistanceXByLevel(ctx.level + 1) + 2);
+        const nextNeedleNum = Math.floor(ctx.svgDS.width / getDistanceXByLevel(ctx.level + 1) + 2);
         assert(nextNeedleNum >= ctx.needleGroupDS.length,
               'Lv.UP must not cause getMmByLevel() to be smaller number');
         if (nextNeedleNum > ctx.needleGroupDS.length) {
           // Re-calculate the necessary number of needles.
-          nextNeedleNum = nextNeedleNum - ctx.needleGroupDS.length;
-          var objX = needleGroupDS.x + distanceX;
-          for (var i = 0; i < nextNeedleNum; i++) {
+          const necessaryNeedleNum = nextNeedleNum - ctx.needleGroupDS.length;
+          let objX = needleGroupDS.x + distanceX;
+          for (let i = 0; i < necessaryNeedleNum; i++) {
             ctx.needleGroupDS.push({
               x: objX,
               y: randNumBetween(0, ctx.svgDS.height - mm),
@@ -560,10 +559,10 @@ window.ItoToShi = (function() {
     }
   };
 
-  var drawNeedles = function drawNeedles($needles) {
+  const drawNeedles = function drawNeedles($needles) {
     // Enter
     $needles.enter().append('g.needle');
-    var $needlePoles = $needles.selectAll('g.needle rect.pole').data(ctx.needlePoleDS);
+    const $needlePoles = $needles.selectAll('g.needle rect.pole').data(ctx.needlePoleDS);
     $needlePoles
       .enter().append('rect.pole')
         .attr('x', d3.f('x'))
@@ -571,7 +570,7 @@ window.ItoToShi = (function() {
         .attr('fill', d3.f('fill'))
         .attr('width', d3.f('width'))
         .attr('height', d3.f('height'));
-    var $needleHoles = $needles.selectAll('g.needle rect.hole').data(ctx.needleHoleDS);
+    const $needleHoles = $needles.selectAll('g.needle rect.hole').data(ctx.needleHoleDS);
     $needleHoles
       .enter().append('rect.hole')
         .attr('x', d3.f('x'))
@@ -586,7 +585,7 @@ window.ItoToShi = (function() {
       // http://stackoverflow.com/questions/26903355/how-to-cancel-scheduled-transition-in-d3
         d3.select(this)
           .transition().duration(shouldAnimate(d) ? THIRTY_FPS : 0)
-          .attr('transform', 'translate(' + d.x + ',' + d.y + ')');
+          .attr('transform', `translate(${d.x},${d.y})`);
     });
     $needleHoles.attr('height', d3.f('height'));
 
@@ -597,12 +596,12 @@ window.ItoToShi = (function() {
   // ======================= Thread =======================
   // * Get / Move / Draw thread object
 
-  var getThread = function getThread() {
+  const getThread = function getThread() {
     return $svg.selectAll('.thread').data(ctx.threadDS);
   };
 
-  var moveThread = function moveThread() {
-    var dataset = ctx.threadDS[0];
+  const moveThread = function moveThread() {
+    const dataset = ctx.threadDS[0];
     if (!ctx.hovering) {
       if (dataset.a < ctx.maxA) {
         dataset.a += ctx.Da;
@@ -616,7 +615,7 @@ window.ItoToShi = (function() {
     return dataset.cy < ctx.svgDS.height + ctx.threadGameOverGapY;
   };
 
-  var drawThread = function drawThread($thread) {
+  const drawThread = function drawThread($thread) {
     // Enter
     $thread.enter().append('circle.thread')
       .attr('cx', function(d) { return 0; })
@@ -626,25 +625,25 @@ window.ItoToShi = (function() {
     // Update
     $thread.transition().duration(shouldAnimate() ? THIRTY_FPS : 0)
       .attr('transform', function(d) {
-        return 'translate(' + d.cx + ',' + d.cy + ')';
+        return `translate(${d.cx},${d.cy})`;
       });
   };
 
   // ======================= "GAME OVER" text =======================
   // * Get / Move / Draw "GAME OVER" text
 
-  var getGameOver = function getGameOver() {
+  const getGameOver = function getGameOver() {
     return $svg.selectAll('#gameOver').data(ctx.gameOverDS);
   };
 
-  var moveGameOver = function moveGameOver() {
-    var dataset = ctx.gameOverDS[0];
-    var bbox = document.getElementById('gameOver').getBBox();
+  const moveGameOver = function moveGameOver() {
+    const dataset = ctx.gameOverDS[0];
+    const bbox = document.getElementById('gameOver').getBBox();
     dataset.x = ctx.svgDS.width / 2 - bbox.width / 2;
     dataset.y = ctx.svgDS.height / 2 - bbox.height / 2;
   };
 
-  var drawGameOver = function drawGameOver($gameover) {
+  const drawGameOver = function drawGameOver($gameover) {
     // Enter
     $gameover.enter().append('text#gameOver.disable-select')
       .attr('font-size', d3.f('fontSize'))
@@ -662,12 +661,12 @@ window.ItoToShi = (function() {
   // ======================= Status text =======================
   // * Get / Move / Draw status text
 
-  var getStatusText = function getStatusText() {
+  const getStatusText = function getStatusText() {
     return $svg.selectAll('#statusText').data(ctx.statusTextDS);
   };
 
   // score -> level -> mm
-  var calcLevelByScore = function calcLevelByScore(score) {
+  const calcLevelByScore = function calcLevelByScore(score) {
     if (ctx.level + 1 < ctx.scoreMmMap.length) {
       if (score >= getScoreByLevel(ctx.level + 1)) {
         return ctx.level + 1;
@@ -679,13 +678,13 @@ window.ItoToShi = (function() {
   };
 
   // @returns Current score
-  var getCurrentScore = function getCurrentScore() {
+  const getCurrentScore = function getCurrentScore() {
     return ctx.statusTextDS[0].score;
   };
 
   // @returns Least score
   // @seealso ctx.scoreMmMap
-  var getScoreByLevel = function getScoreByLevel(level) {
+  const getScoreByLevel = function getScoreByLevel(level) {
     level = Math.min(level, ctx.scoreMmMap.length - 1);
     return ctx.scoreMmMap[level][0];
   };
@@ -693,43 +692,43 @@ window.ItoToShi = (function() {
   // @returns Hole height (mm)
   //          NOTE: Actually returns 'px' number, not 'mm' ... ;)
   // @seealso ctx.scoreMmMap
-  var getMmByLevel = function getMmByLevel(level) {
+  const getMmByLevel = function getMmByLevel(level) {
     level = Math.min(level, ctx.scoreMmMap.length - 1);
     return ctx.scoreMmMap[level][1];
   };
 
   // @returns distanceX
   // @seealso ctx.scoreMmMap
-  var getDistanceXByLevel = function getDistanceXByLevel(level) {
+  const getDistanceXByLevel = function getDistanceXByLevel(level) {
     level = Math.min(level, ctx.scoreMmMap.length - 1);
     return ctx.scoreMmMap[level][2];
   };
 
-  var drawStatusText = function drawStatusText($statusText) {
+  const drawStatusText = function drawStatusText($statusText) {
     // Enter
     $statusText.enter().append('text#statusText.disable-select')
       .attr('x', d3.f('x'))
       .attr('y', d3.f('y'))
       .attr('font-size', d3.f('fontSize'));
     // Update
-    var mm = getMmByLevel(ctx.level);
-    var distanceX = getDistanceXByLevel(ctx.level);
+    const mm = getMmByLevel(ctx.level);
+    const distanceX = getDistanceXByLevel(ctx.level);
     $statusText
-      .text(function(d) { return d.mode + ' ' + d.score + '本 針穴' + mm + 'mm 距離' + distanceX + 'm'; });
+      .text(function(d) { return `${d.mode} ${d.score}本 針穴${mm}mm 距離${distanceX}m`; });
   };
 
   // ======================= Collision detection =======================
 
   // Detect collisions with thread & needles.
-  var detectCollision = function detectCollision() {
-    var doContinue = true;
-    var thread = ctx.threadDS[0];
-    var statusText = ctx.statusTextDS[0];
+  const detectCollision = function detectCollision() {
+    let doContinue = true;
+    const thread = ctx.threadDS[0];
+    const statusText = ctx.statusTextDS[0];
     getNeedles().each(function(d) {
       if (d.passed) return;
-      var mm = getMmByLevel(ctx.level);
-      var fromY = d.y + NEEDLE_HOLE_DY;
-      var toY = fromY + mm;
+      const mm = getMmByLevel(ctx.level);
+      const fromY = d.y + NEEDLE_HOLE_DY;
+      const toY = fromY + mm;
       if (thread.cx >= d.x) {
         if (fromY <= thread.cy - thread.r && thread.cy + thread.r <= toY) { // Passed
           statusText.score++;
@@ -743,10 +742,6 @@ window.ItoToShi = (function() {
     return doContinue;
   };
 
-  return {
-    enableFullscreen: enableFullscreen,
-    init: init
-  };
-})();
-
-window.onload = window.ItoToShi.init;
+  $window.onload = init;
+  $document.getElementById('fullscreen-btn').onclick = enableFullscreen;
+})(window, document);

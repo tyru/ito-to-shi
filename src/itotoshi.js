@@ -1,3 +1,6 @@
+import d3 from 'd3'
+import 'd3-jetpack'
+
 window.ItoToShi = (function() {
   'use strict';
 
@@ -443,7 +446,9 @@ window.ItoToShi = (function() {
       if (mode !== '') selectedMode = mode;
     };
     $selectModeScreen
-      .appendMany(ctx.selectModeButtonRectDS, 'rect.selectModeButtonRectDS')
+      .selectAll('rect.selectModeButtonRectDS')
+      .data(ctx.selectModeButtonRectDS)
+      .enter().append('rect.selectModeButtonRectDS')
         .attr('data-mode', function(_, i) {
           return ctx.selectModeButtonTextDS[i].text;
         })
@@ -454,7 +459,9 @@ window.ItoToShi = (function() {
         .attr('height', d3.f('height'))
         .on('touchstart mousedown', selectMode);
     $selectModeScreen
-      .appendMany(ctx.selectModeButtonTextDS, 'text.selectModeButtonTextDS.disable-select')
+      .selectAll('text.selectModeButtonTextDS.disable-select')
+      .data(ctx.selectModeButtonTextDS)
+      .enter().append('text.selectModeButtonTextDS.disable-select')
         .attr('data-mode', d3.f('text'))
         .attr('x', d3.f('x'))
         .attr('y', d3.f('y'))

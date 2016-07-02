@@ -1,0 +1,35 @@
+{
+  "name": "ito-to-shi",
+  "version": "0.0.1b",
+  "description": "スマホやPCで暇なとき遊べる懐かしの糸通しゲーム",
+  "main": "src/itotoshi.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "gulp build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tyru/ito-to-shi.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tyru/ito-to-shi/issues"
+  },
+  "homepage": "http://tyru.github.io/ito-to-shi/",
+  "devDependencies": {
+    "babelify": "^7.3.0",
+    "browserify": "^13.0.1",
+    "gulp": "^3.9.1",
+    "gulp-load-plugins": "^1.2.4",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-uglify": "^1.5.4",
+    "through2": "^2.0.1",
+    "vinyl-source-stream": "^1.1.0",
+    "vinyl-transform": "^1.0.0"
+  },
+  "dependencies": {
+    "d3": "^3.5.17",
+    "d3-jetpack": "^1.0.2"
+  }
+}

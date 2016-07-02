@@ -28,8 +28,8 @@ import 'd3-jetpack'
 
     const svgDS = getSvgDS();
     $svg = d3.select("body").select("svg")
-      .on('touchstart keydown mousedown', screenDispatcher.touchStart)
-      .on('touchend keyup mouseup', screenDispatcher.touchEnd)
+      .on('touchstart keydown mousedown', () => screenDispatcher.touchStart())
+      .on('touchend keyup mouseup', () => screenDispatcher.touchEnd())
       .attr('width', svgDS.width)
       .attr('height', svgDS.height);
 
@@ -183,21 +183,23 @@ import 'd3-jetpack'
   // * Dispatches *Screen instances' methods.
   // * Changes current screen ID.
 
-  const ScreenDispatcher = function ScreenDispatcher() {
-    const screens = {};
-    let currentScreenId = SCR_INITIAL;
+  class ScreenDispatcher {
+    constructor() {
+      this.screens = {};
+      this.currentScreenId = SCR_INITIAL;
+    }
 
-    this.register = function register(id, func) {
-      screens[id] = func;
-    };
+    register(id, func) {
+      this.screens[id] = func;
+    }
 
-    this.changeScreen = function changeScreen(id) {
+    changeScreen(id) {
       // Clear timer
       if (ctx.theTimer) {
         clearInterval(ctx.theTimer);
         ctx.theTimer = null;
       }
-      const screen = screens[id];
+      const screen = this.screens[id];
       if (!screen) {
         return;
       }
@@ -211,21 +213,25 @@ import 'd3-jetpack'
       if (screen.update && screen.getInterval) {
         ctx.theTimer = setInterval(screen.update, screen.getInterval());
       }
-      currentScreenId = id;
-    };
+      this.currentScreenId = id;
+    }
 
-    this.touchStart = function touchStart() {
+    touchStart() {
       d3.event.preventDefault();    // Don't propagate click event to outside <svg> tag
-      screens[currentScreenId].touchStart(...arguments);
-    };
+      this.screens[this.currentScreenId].touchStart(...arguments);
+    }
 
-    this.touchEnd = function touchEnd() {
-      screens[currentScreenId].touchEnd(...arguments);
-    };
-  };
+    touchEnd() {
+      this.screens[this.currentScreenId].touchEnd(...arguments);
+    }
+  }
 
-  const InitialScreen = function InitialScreen() {
-    this.init = function init() {
+  class InitialScreen {
+    constructor() {
+      this.blink = true;
+    }
+
+    init() {
       drawThread(getThread());
       makeNeedles();
       drawNeedles(getNeedles());
@@ -240,49 +246,53 @@ import 'd3-jetpack'
       // Move to visible point
       movePressStart();
       drawPressStart(getPressStart());
-    };
-    let blink = true;
-    this.update = function update() {
-      blink = !blink;
-    };
-    this.getInterval = function getInterval() {
+    }
+
+    update() {
+      this.blink = !this.blink;
+    }
+
+    getInterval() {
       return 500;
-    };
-    this.touchStart = function touchStart() {
+    }
+
+    touchStart() {
       ctx.pressStartDS = [];
       drawPressStart(getPressStart());
       screenDispatcher.changeScreen(SCR_SELECT_MODE);
-    };
-    this.touchEnd = function touchEnd() {
-    };
-  };
+    }
 
-  const SelectModeScreen = function SelectModeScreen() {
-    this.init = function init() {
+    touchEnd() { }
+  }
+
+  class SelectModeScreen {
+    init() {
       makeSelectModeScreen();
       drawSelectModeScreen(getSelectModeScreen());
-    };
-    this.touchStart = function touchStart() {
+    }
+
+    touchStart() {
       if (selectedMode !== '') {
         ctx = getInitVars(selectedMode);
         clearSelectModeScreen(getSelectModeScreen());
         drawSelectModeScreen(getSelectModeScreen());
         screenDispatcher.changeScreen(SCR_RUNNING);
       }
-    };
-    this.touchEnd = function touchEnd() {
-    };
-  };
+    }
 
-  const RunningScreen = function RunningScreen() {
-    this.init = function init() {
+    touchEnd() { }
+  }
+
+  class RunningScreen {
+    init() {
       drawLevelUpText(getLevelUpText());
       drawThread(getThread());
       makeNeedles();
       drawNeedles(getNeedles());
       drawStatusText(getStatusText());
-    };
-    this.update = function update() {
+    }
+
+    update() {
       // Move objects
       let doContinue = moveThread();
       moveNeedles();
@@ -298,20 +308,23 @@ import 'd3-jetpack'
       if (!doContinue) {
         screenDispatcher.changeScreen(SCR_GAMEOVER);
       }
-    };
-    this.getInterval = function getInterval() {
-      return THIRTY_FPS;
-    };
-    this.touchStart = function touchStart() {
-      ctx.hovering = true;
-    };
-    this.touchEnd = function touchEnd() {
-      ctx.hovering = false;
-    };
-  };
+    }
 
-  const GameOverScreen = function GameOverScreen() {
-    this.init = function init() {
+    getInterval() {
+      return THIRTY_FPS;
+    }
+
+    touchStart() {
+      ctx.hovering = true;
+    }
+
+    touchEnd() {
+      ctx.hovering = false;
+    }
+  }
+
+  class GameOverScreen {
+    init() {
       // Draw at hidden point to get bbox width & height.
       ctx.gameOverDS = [{  // <text>
         x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
@@ -320,15 +333,16 @@ import 'd3-jetpack'
       // Move to visible point
       moveGameOver();
       drawGameOver(getGameOver());
-    };
-    this.touchStart = function touchStart() {
+    }
+
+    touchStart() {
       ctx = getInitVars(selectedMode);
       drawGameOver(getGameOver());
       screenDispatcher.changeScreen(SCR_RUNNING);
-    };
-    this.touchEnd = function touchEnd() {
-    };
-  };
+    }
+
+    touchEnd() { }
+  }
 
   // ======================= (Initial screen) "PRESS START" text =======================
   // * Get / Move / Draw "PRESS START" text object

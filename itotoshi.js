@@ -146,7 +146,8 @@ window.ItoToShi = (function() {
       level: 0,
       gameOverDS: [],    // <text>
       selectModeScreenDS: [],    // <g>
-      selectModeButtonsDS: [],    // <g>
+      selectModeButtonRectDS: [],    // <rect>
+      selectModeButtonTextDS: [],    // <text>
       pressStartDS: [],    // <text>
       needleDx: needleDx,
       needleGapX: -10,
@@ -420,7 +421,8 @@ window.ItoToShi = (function() {
 
   var clearSelectModeScreen = function clearSelectModeScreen() {
     ctx.selectModeScreenDS = [];
-    ctx.selectModeButtonsDS = [];
+    ctx.selectModeButtonRectDS = [];
+    ctx.selectModeButtonTextDS = [];
   };
 
   var drawSelectModeScreen = function drawSelectModeScreen($selectModeScreen) {

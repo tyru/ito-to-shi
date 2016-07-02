@@ -27,12 +27,8 @@ window.ItoToShi = (function() {
 
     var svgDS = getSvgDS();
     $svg = d3.select("body").select("svg")
-      .on('touchstart', screenDispatcher.touchStart)
-      .on('touchend', screenDispatcher.touchEnd)
-      .on('keydown', screenDispatcher.touchStart)
-      .on('keyup', screenDispatcher.touchEnd)
-      .on('mousedown', screenDispatcher.touchStart)
-      .on('mouseup', screenDispatcher.touchEnd)
+      .on('touchstart keydown mousedown', screenDispatcher.touchStart)
+      .on('touchend keyup mouseup', screenDispatcher.touchEnd)
       .attr('width', svgDS.width)
       .attr('height', svgDS.height);
 
@@ -345,20 +341,18 @@ window.ItoToShi = (function() {
 
   var drawPressStart = function drawPressStart($pressStart) {
     // Enter
-    $pressStart.enter().append('text')
-      .attr('id', 'pressStart')
-      .attr('class', 'disable-select')
-      .attr('font-size', function(d) { return d.fontSize; })
-      .text(function(d) { return d.text; });
+    $pressStart.enter().append('text#pressStart.disable-select')
+      .attr('font-size', d3.f('fontSize'))
+      .text(d3.f('text'));
 
     // Exit
     $pressStart.exit().remove();
 
     // Update
     $pressStart
-      .attr('x', function(d) { return d.x; })
-      .attr('y', function(d) { return d.y; })
-      .attr('fill', function(d) { return d.fill; })
+      .attr('x', d3.f('x'))
+      .attr('y', d3.f('y'))
+      .attr('fill', d3.f('fill'))
   };
 
   // ======================= (Running screen) "Lv. UP" text =======================
@@ -384,21 +378,19 @@ window.ItoToShi = (function() {
 
   var drawLevelUpText = function drawLevelUpText($pressStart) {
     // Enter
-    $pressStart.enter().append('text')
-      .attr('id', 'levelUp')
-      .attr('class', 'disable-select')
+    $pressStart.enter().append('text#levelUp.disable-select')
       .attr('style', 'font-weight: bold;')
-      .attr('font-size', function(d) { return d.fontSize; })
-      .text(function(d) { return d.text; });
+      .attr('font-size', d3.f('fontSize'))
+      .text(d3.f('text'));
 
     // Exit
     $pressStart.exit().remove();
 
     // Update
     $pressStart
-      .attr('x', function(d) { return d.x; })
-      .attr('y', function(d) { return d.y; })
-      .attr('fill', function(d) { return d.fill; })
+      .attr('x', d3.f('x'))
+      .attr('y', d3.f('y'))
+      .attr('fill', d3.f('fill'))
   };
 
   // ======================= Select mode screen =======================
@@ -412,23 +404,17 @@ window.ItoToShi = (function() {
     ctx.selectModeScreenDS = [{
       x: 0, y: 0, fill: 'black', width: ctx.svgDS.width, height: ctx.svgDS.height
     }];
-    ctx.selectModeButtonsDS = [
-      {
-        rect: {x: 40, y: 30, fill: 'green', width: 110, height: 70},
-        text: {x: 60, y: 70, fontSize: '24px', text: 'EASY', fill: 'white'}
-      },
-      {
-        rect: {x: 180, y: 30, fill: 'blue', width: 110, height: 70},
-        text: {x: 190, y: 70, fontSize: '24px', text: 'NORMAL', fill: 'white'}
-      },
-      {
-        rect: {x: 40, y: 130, fill: 'red', width: 110, height: 70},
-        text: {x: 60, y: 170, fontSize: '24px', text: 'HARD', fill: 'white'}
-      },
-      {
-        rect: {x: 180, y: 130, fill: 'purple', width: 110, height: 70},
-        text: {x: 190, y: 170, fontSize: '24px', text: 'LUNATIC', fill: 'white'}
-      }
+    ctx.selectModeButtonRectDS = [
+      {x: 40, y: 30, fill: 'green', width: 110, height: 70},
+      {x: 180, y: 30, fill: 'blue', width: 110, height: 70},
+      {x: 40, y: 130, fill: 'red', width: 110, height: 70},
+      {x: 180, y: 130, fill: 'purple', width: 110, height: 70}
+    ];
+    ctx.selectModeButtonTextDS = [
+      {x: 60, y: 70, fontSize: '24px', text: 'EASY', fill: 'white'},
+      {x: 190, y: 70, fontSize: '24px', text: 'NORMAL', fill: 'white'},
+      {x: 60, y: 170, fontSize: '24px', text: 'HARD', fill: 'white'},
+      {x: 190, y: 170, fontSize: '24px', text: 'LUNATIC', fill: 'white'}
     ];
   };
 
@@ -440,50 +426,41 @@ window.ItoToShi = (function() {
   var drawSelectModeScreen = function drawSelectModeScreen($selectModeScreen) {
     // Enter
     $selectModeScreen.enter()
-      .append('g')
-        .attr('class', 'selectModeScreen')
+      .append('g.selectModeScreen')
       .append('rect')
         .attr('x', function(d) { return 0; })
         .attr('y', function(d) { return 0; })
-        .attr('fill', function(d) { return d.fill; })
-        .attr('width', function(d) { return d.width; })
-        .attr('height', function(d) { return d.height; })
+        .attr('fill', d3.f('fill'))
+        .attr('width', d3.f('width'))
+        .attr('height', d3.f('height'))
 
     var selectMode = function() {
       var mode = d3.select(this).attr('data-mode');
       if (mode !== '') selectedMode = mode;
     };
-    var $buttons = $selectModeScreen
-                   .selectAll('.selectModeButtonsDS')
-                   .data(ctx.selectModeButtonsDS)
-    $buttons
-      .enter()
-      .append('rect')
-        .attr('class', 'selectModeButtonsDS')
-        .attr('data-mode', function(d) { return d.text.text; })
-        .attr('x', function(d) { return d.rect.x; })
-        .attr('y', function(d) { return d.rect.y; })
-        .attr('fill', function(d) { return d.rect.fill; })
-        .attr('width', function(d) { return d.rect.width; })
-        .attr('height', function(d) { return d.rect.height; })
-        .on('touchstart', selectMode)
-        .on('mousedown', selectMode)
-    $buttons
-      .enter()
-      .append('text')
-        .attr('class', 'disable-select')
-        .attr('data-mode', function(d) { return d.text.text; })
-        .attr('x', function(d) { return d.text.x; })
-        .attr('y', function(d) { return d.text.y; })
-        .attr('fill', function(d) { return d.text.fill; })
-        .attr('font-size', function(d) { return d.text.fontSize; })
-        .text(function(d) { return d.text.text; })
-        .on('touchstart', selectMode)
-        .on('mousedown', selectMode)
+    $selectModeScreen
+      .appendMany(ctx.selectModeButtonRectDS, 'rect.selectModeButtonRectDS')
+        .attr('data-mode', function(_, i) {
+          return ctx.selectModeButtonTextDS[i].text;
+        })
+        .attr('x', d3.f('x'))
+        .attr('y', d3.f('y'))
+        .attr('fill', d3.f('fill'))
+        .attr('width', d3.f('width'))
+        .attr('height', d3.f('height'))
+        .on('touchstart mousedown', selectMode);
+    $selectModeScreen
+      .appendMany(ctx.selectModeButtonTextDS, 'text.selectModeButtonTextDS.disable-select')
+        .attr('data-mode', d3.f('text'))
+        .attr('x', d3.f('x'))
+        .attr('y', d3.f('y'))
+        .attr('fill', d3.f('fill'))
+        .attr('font-size', d3.f('fontSize'))
+        .text(d3.f('text'))
+        .on('touchstart mousedown', selectMode);
 
     // Exit
     $selectModeScreen.exit().remove();
-    $buttons.exit().remove();
   };
 
   // ======================= Needles =======================
@@ -573,19 +550,16 @@ window.ItoToShi = (function() {
   var drawNeedles = function drawNeedles($needles) {
     function drawRect($selection, i) {
       $selection
-        .append('rect')
-        .attr('class', i === NEEDLE_INDEX ? 'pole' : 'hole')
+        .append('rect.' + (i === NEEDLE_INDEX ? 'pole' : 'hole'))
         .attr('x', function(d) { return d.needleRects[i].x; })
         .attr('y', function(d) { return d.needleRects[i].y; })
         .attr('fill', function(d) { return d.needleRects[i].fill; })
         .attr('width', function(d) { return d.needleRects[i].width; })
-        .attr('height', function (d) { return d.needleRects[i].height; })
+        .attr('height', function (d) { return d.needleRects[i].height; });
     }
 
     // Enter
-    var $group = $needles
-      .enter().append('g')
-        .attr('class', 'needle')
+    var $group = $needles.enter().append('g.needle');
     drawRect($group, NEEDLE_INDEX);
     drawRect($group, NEEDLE_HOLE_INDEX);
 
@@ -602,7 +576,7 @@ window.ItoToShi = (function() {
       return ctx.needleGroupDS.map(function (value) {
         return value.needleRects[NEEDLE_HOLE_INDEX];
       });
-    }).attr('height', function (d) { return d.height; })
+    }).attr('height', d3.f('height'))
 
     // Exit
     $needles.exit().remove();
@@ -632,15 +606,16 @@ window.ItoToShi = (function() {
 
   var drawThread = function drawThread($thread) {
     // Enter
-    $thread.enter().append('circle')
-      .attr('class', 'thread')
+    $thread.enter().append('circle.thread')
       .attr('cx', function(d) { return 0; })
       .attr('cy', function(d) { return 0; })
-      .attr('r', function(d) { return d.r; })
-      .attr('fill', function(d) { return d.fill; });
+      .attr('r', d3.f('r'))
+      .attr('fill', d3.f('fill'));
     // Update
     $thread.transition().duration(shouldAnimate() ? THIRTY_FPS : 0)
-      .attr('transform', function(d) { return 'translate(' + d.cx + ',' + d.cy + ')'; });
+      .attr('transform', function(d) {
+        return 'translate(' + d.cx + ',' + d.cy + ')';
+      });
   };
 
   // ======================= "GAME OVER" text =======================
@@ -659,19 +634,17 @@ window.ItoToShi = (function() {
 
   var drawGameOver = function drawGameOver($gameover) {
     // Enter
-    $gameover.enter().append('text')
-      .attr('id', 'gameOver')
-      .attr('class', 'disable-select')
-      .attr('font-size', function(d) { return d.fontSize; })
-      .text(function(d) { return d.text; });
+    $gameover.enter().append('text#gameOver.disable-select')
+      .attr('font-size', d3.f('fontSize'))
+      .text(d3.f('text'));
 
     // Exit
     $gameover.exit().remove();
 
     // Update
     $gameover
-      .attr('x', function(d) { return d.x; })
-      .attr('y', function(d) { return d.y; })
+      .attr('x', d3.f('x'))
+      .attr('y', d3.f('y'))
   };
 
   // ======================= Status text =======================
@@ -722,12 +695,10 @@ window.ItoToShi = (function() {
 
   var drawStatusText = function drawStatusText($statusText) {
     // Enter
-    $statusText.enter().append('text')
-      .attr('id', 'statusText')
-      .attr('class', 'disable-select')
-      .attr('x', function(d) { return d.x; })
-      .attr('y', function(d) { return d.y; })
-      .attr('font-size', function(d) { return d.fontSize; });
+    $statusText.enter().append('text#statusText.disable-select')
+      .attr('x', d3.f('x'))
+      .attr('y', d3.f('y'))
+      .attr('font-size', d3.f('fontSize'));
     // Update
     var mm = getMmByLevel(ctx.level);
     var distanceX = getDistanceXByLevel(ctx.level);

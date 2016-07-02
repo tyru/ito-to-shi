@@ -594,12 +594,11 @@ window.ItoToShi = (function() {
           .attr('transform', 'translate(' + d.x + ',' + d.y + ')');
     });
 
-    $needles.selectAll('g.needle rect.hole').data(function (d, i) {
+    $needles.select('g.needle rect.hole').data(function () {
       return ctx.needleGroupDS.map(function (value) {
         return value.needleRects[NEEDLE_HOLE_INDEX];
       });
-    })
-      .attr('height', function (d) { return d.height; })
+    }).attr('height', function (d) { return d.height; })
 
     // Exit
     $needles.exit().remove();

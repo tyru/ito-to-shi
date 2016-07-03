@@ -13,8 +13,7 @@
          xmlns:xlink="http://www.w3.org/1999/xlink"
          xml:space="preserve"></svg>
 
-    <button class='fullscreen-btn'
-      onclick='ItoToShi.enableFullscreen(document.getElementById("screen"))'>フルスクリーン</button>
+    <button id='fullscreen-btn'>フルスクリーン</button>
 
     <p>
       暇なとき定期的にスマホで糸通しがやりたくなるのでカッとなって作った。<br>
@@ -33,12 +32,11 @@
         -webkit-user-select: none;
         user-select: none;
       }
-      .fullscreen-btn {
+      #fullscreen-btn {
         font-size: 32px;
         width: 320px;
       }
     </style>
-    <script src='d3-v3.5.17/d3.js'></script>
-    <script src='itotoshi.js'></script>
+    <script src='dist/itotoshi.js'></script>
   </body>
 </html>

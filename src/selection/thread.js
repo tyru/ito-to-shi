@@ -7,12 +7,24 @@ import * as util from '../util.js'
 import * as constant from '../constant.js'
 
 export default class ThreadSelection {
+  constructor() {
+    const svgDS = app.getSvgDS();
+    this._threadDS = [{  // <circle>
+      cx: svgDS.width * 0.33, cy: svgDS.height * 0.33,
+      fill: 'red', r: 5, a: 1
+    }];
+  }
+
+  getDS() {
+    return this._threadDS[0];
+  }
+
   getThread() {
-    return app.$svg.selectAll('.thread').data(app.ctx.threadDS);
+    return app.$svg.selectAll('.thread').data(this._threadDS);
   }
 
   moveThread() {
-    const dataset = app.ctx.threadDS[0];
+    const dataset = this._threadDS[0];
     if (!app.ctx.hovering) {
       if (dataset.a < app.ctx.maxA) {
         dataset.a += app.ctx.Da;

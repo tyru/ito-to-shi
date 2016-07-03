@@ -10,7 +10,7 @@ export default class SelectModeScreen {
   touchStart() {
     if (app.selectedMode !== '') {
       app.initContext(app.selectedMode);
-      app.selectModeScreenSelection.clearSelectModeScreen(app.selectModeScreenSelection.getSelectModeScreen());
+      app.selectModeScreenSelection.resetSelectModeScreen(app.selectModeScreenSelection.getSelectModeScreen());
       app.selectModeScreenSelection.drawSelectModeScreen(app.selectModeScreenSelection.getSelectModeScreen());
       app.screenDispatcher.changeScreen(constant.SCR_RUNNING);
     }

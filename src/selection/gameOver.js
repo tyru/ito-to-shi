@@ -31,15 +31,15 @@ export default class GameOverSelection {
   drawGameOver($gameover) {
     // Enter
     $gameover.enter().append('text#gameOver.disable-select')
-      .attr('font-size', d3.f('fontSize'))
-      .text(d3.f('text'));
+      .attr('font-size', d => d.fontSize)
+      .text(d => d.text);
 
     // Exit
     $gameover.exit().remove();
 
     // Update
     $gameover
-      .attr('x', d3.f('x'))
-      .attr('y', d3.f('y'))
+      .attr('x', d => d.x)
+      .attr('y', d => d.y)
   }
 }

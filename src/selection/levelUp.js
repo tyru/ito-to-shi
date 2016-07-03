@@ -34,16 +34,16 @@ export default class LevelUpSelection {
     // Enter
     $pressStart.enter().append('text#levelUp.disable-select')
       .attr('style', 'font-weight: bold;')
-      .attr('font-size', d3.f('fontSize'))
-      .text(d3.f('text'));
+      .attr('font-size', d => d.fontSize)
+      .text(d => d.text);
 
     // Exit
     $pressStart.exit().remove();
 
     // Update
     $pressStart
-      .attr('x', d3.f('x'))
-      .attr('y', d3.f('y'))
-      .attr('fill', d3.f('fill'))
+      .attr('x', d => d.x)
+      .attr('y', d => d.y)
+      .attr('fill', d => d.fill)
   }
 }

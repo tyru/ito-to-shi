@@ -34,16 +34,16 @@ export default class PressStartSelection {
   drawPressStart($pressStart) {
     // Enter
     $pressStart.enter().append('text#pressStart.disable-select')
-      .attr('font-size', d3.f('fontSize'))
-      .text(d3.f('text'));
+      .attr('font-size', d => d.fontSize)
+      .text(d => d.text);
 
     // Exit
     $pressStart.exit().remove();
 
     // Update
     $pressStart
-      .attr('x', d3.f('x'))
-      .attr('y', d3.f('y'))
-      .attr('fill', d3.f('fill'))
+      .attr('x', d => d.x)
+      .attr('y', d => d.y)
+      .attr('fill', d => d.fill)
   }
 }

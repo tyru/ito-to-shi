@@ -46,9 +46,9 @@ export default class SelectModeScreenSelection {
       .append('rect')
         .attr('x', () => 0)
         .attr('y', () => 0)
-        .attr('fill', d3.f('fill'))
-        .attr('width', d3.f('width'))
-        .attr('height', d3.f('height'))
+        .attr('fill', d => d.fill)
+        .attr('width', d => d.width)
+        .attr('height', d => d.height)
 
     const selectMode = function() {
       const mode = d3.select(this).attr('data-mode');
@@ -61,22 +61,22 @@ export default class SelectModeScreenSelection {
         .attr('data-mode', (_, i) => {
           return this.selectModeButtonTextDS[i].text;
         })
-        .attr('x', d3.f('x'))
-        .attr('y', d3.f('y'))
-        .attr('fill', d3.f('fill'))
-        .attr('width', d3.f('width'))
-        .attr('height', d3.f('height'))
+        .attr('x', d => d.x)
+        .attr('y', d => d.y)
+        .attr('fill', d => d.fill)
+        .attr('width', d => d.width)
+        .attr('height', d => d.height)
         .on('touchstart mousedown', selectMode);
     $selectModeScreen
       .selectAll('text.selectModeButtonTextDS.disable-select')
       .data(this.selectModeButtonTextDS)
       .enter().append('text.selectModeButtonTextDS.disable-select')
-        .attr('data-mode', d3.f('text'))
-        .attr('x', d3.f('x'))
-        .attr('y', d3.f('y'))
-        .attr('fill', d3.f('fill'))
-        .attr('font-size', d3.f('fontSize'))
-        .text(d3.f('text'))
+        .attr('data-mode', d => d.text)
+        .attr('x', d => d.x)
+        .attr('y', d => d.y)
+        .attr('fill', d => d.fill)
+        .attr('font-size', d => d.fontSize)
+        .text(d => d.text)
         .on('touchstart mousedown', selectMode);
 
     // Exit

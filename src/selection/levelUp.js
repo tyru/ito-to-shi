@@ -5,15 +5,22 @@ import 'd3-jetpack'
 import {app} from '../app.js'
 
 export default class LevelUpSelection {
+  constructor() {
+    this.levelUpDS = [{  // <text>
+      x: -99, y: -99, fontSize: '18px', text: 'Lv. UP', fill: 'red',
+      dy: -1, hoverHeight: 20
+    }];
+  }
+
   getLevelUpText() {
-    return app.$svg.selectAll('#levelUp').data(app.ctx.levelUpDS);
+    return app.$svg.selectAll('#levelUp').data(this.levelUpDS);
   }
 
   moveLevelUpText(show) {
-    const dataset = app.ctx.levelUpDS[0];
+    const dataset = this.levelUpDS[0];
     if (show) { // Start
-      dataset.x = app.ctx.threadDS[0].cx;
-      dataset.y = app.ctx.threadDS[0].cy;
+      dataset.x = app.threadDS.cx;
+      dataset.y = app.threadDS.cy;
       dataset.endY = dataset.y - dataset.hoverHeight;
     } else if (dataset.y >= dataset.endY) { // Hovering
       dataset.y += dataset.dy;

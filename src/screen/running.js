@@ -25,17 +25,16 @@ export default class RunningScreen {
     // Detect collisions with thread & needles.
     function detectCollision() {
       let doContinue = true;
-      const thread = app.ctx.threadDS[0];
-      const statusText = app.ctx.statusTextDS[0];
       app.needleSelection.getNeedles().each(function(d) {
         if (d.passed) return;
         const mm = app.getMmByLevel(app.ctx.level);
         const fromY = d.y + constant.NEEDLE_HOLE_DY;
         const toY = fromY + mm;
+        const thread = app.threadDS;
         if (thread.cx >= d.x) {
           if (fromY <= thread.cy - thread.r && thread.cy + thread.r <= toY) { // Passed
-            statusText.score++;
-            app.ctx.level = calcLevelByScore(statusText.score); // May Lv. Up
+            app.statusTextScore++;
+            app.ctx.level = calcLevelByScore(app.statusTextScore); // May Lv. Up
             d.passed = true;
           } else {  // Failed
             doContinue = false;

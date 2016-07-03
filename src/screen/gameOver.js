@@ -4,9 +4,7 @@ import * as constant from '../constant.js'
 export default class GameOverScreen {
   init() {
     // Draw at hidden point to get bbox width & height.
-    app.ctx.gameOverDS = [{  // <text>
-      x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
-    }];
+    app.gameOverSelection.makeHiddenGameOver();
     app.gameOverSelection.drawGameOver(app.gameOverSelection.getGameOver());
     // Move to visible point
     app.gameOverSelection.moveGameOver();

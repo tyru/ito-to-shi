@@ -2,18 +2,18 @@
 
 import d3 from 'd3'
 import 'd3-jetpack'
-import * as global from '../global.js'
+import {app} from '../app.js'
 
 export default class LevelUpSelection {
   getLevelUpText() {
-    return global.$svg.selectAll('#levelUp').data(global.ctx.levelUpDS);
+    return app.$svg.selectAll('#levelUp').data(app.ctx.levelUpDS);
   }
 
   moveLevelUpText(show) {
-    const dataset = global.ctx.levelUpDS[0];
+    const dataset = app.ctx.levelUpDS[0];
     if (show) { // Start
-      dataset.x = global.ctx.threadDS[0].cx;
-      dataset.y = global.ctx.threadDS[0].cy;
+      dataset.x = app.ctx.threadDS[0].cx;
+      dataset.y = app.ctx.threadDS[0].cy;
       dataset.endY = dataset.y - dataset.hoverHeight;
     } else if (dataset.y >= dataset.endY) { // Hovering
       dataset.y += dataset.dy;

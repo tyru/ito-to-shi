@@ -1,2 +1,4 @@
 /node_modules
 /dist/map
+/dist/*
+!/dist/itotoshi.js

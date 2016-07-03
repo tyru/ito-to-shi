@@ -3,7 +3,7 @@
 
 import d3 from 'd3'
 import 'd3-jetpack'
-import * as global from './global.js'
+import {app} from './app.js'
 
 export default class ScreenDispatcher {
   constructor(screenId) {
@@ -17,9 +17,9 @@ export default class ScreenDispatcher {
 
   changeScreen(id) {
     // Clear timer
-    if (global.ctx.theTimer) {
-      clearInterval(global.ctx.theTimer);
-      global.ctx.theTimer = null;
+    if (app.ctx.theTimer) {
+      clearInterval(app.ctx.theTimer);
+      app.ctx.theTimer = null;
     }
     const screen = this.screens[id];
     if (!screen) {
@@ -27,13 +27,13 @@ export default class ScreenDispatcher {
     }
     // Call init functions
     if (screen.init) {
-      global.ctx.animateGlobal = false;
+      app.ctx.animateGlobal = false;
       screen.init();
-      global.ctx.animateGlobal = true;
+      app.ctx.animateGlobal = true;
     }
     // Update draw function
     if (screen.update && screen.getInterval) {
-      global.ctx.theTimer = setInterval(screen.update, screen.getInterval());
+      app.ctx.theTimer = setInterval(screen.update, screen.getInterval());
     }
     this.currentScreenId = id;
   }

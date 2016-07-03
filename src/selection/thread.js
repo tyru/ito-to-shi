@@ -2,27 +2,28 @@
 
 import d3 from 'd3'
 import 'd3-jetpack'
-import * as global from '../global.js'
+import {app} from '../app.js'
 import * as util from '../util.js'
+import * as constant from '../constant.js'
 
 export default class ThreadSelection {
   getThread() {
-    return global.$svg.selectAll('.thread').data(global.ctx.threadDS);
+    return app.$svg.selectAll('.thread').data(app.ctx.threadDS);
   }
 
   moveThread() {
-    const dataset = global.ctx.threadDS[0];
-    if (!global.ctx.hovering) {
-      if (dataset.a < global.ctx.maxA) {
-        dataset.a += global.ctx.Da;
+    const dataset = app.ctx.threadDS[0];
+    if (!app.ctx.hovering) {
+      if (dataset.a < app.ctx.maxA) {
+        dataset.a += app.ctx.Da;
       }
     } else {
-      if (dataset.a > global.ctx.minA) {
-        dataset.a -= global.ctx.Da;
+      if (dataset.a > app.ctx.minA) {
+        dataset.a -= app.ctx.Da;
       }
     }
     dataset.cy += dataset.a;
-    return dataset.cy < global.ctx.svgDS.height + global.ctx.threadGameOverGapY;
+    return dataset.cy < app.ctx.svgDS.height + app.ctx.threadGameOverGapY;
   }
 
   drawThread($thread) {
@@ -33,7 +34,7 @@ export default class ThreadSelection {
       .attr('r', d3.f('r'))
       .attr('fill', d3.f('fill'));
     // Update
-    $thread.transition().duration(util.shouldAnimate() ? global.THIRTY_FPS : 0)
+    $thread.transition().duration(util.shouldAnimate() ? constant.THIRTY_FPS : 0)
       .attr('transform', function(d) {
         return `translate(${d.cx},${d.cy})`;
       });

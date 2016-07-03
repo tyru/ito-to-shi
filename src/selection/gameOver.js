@@ -2,18 +2,18 @@
 
 import d3 from 'd3'
 import 'd3-jetpack'
-import * as global from '../global.js'
+import {app} from '../app.js'
 
 export default class GameOverSelection {
   getGameOver() {
-    return global.$svg.selectAll('#gameOver').data(global.ctx.gameOverDS);
+    return app.$svg.selectAll('#gameOver').data(app.ctx.gameOverDS);
   }
 
   moveGameOver() {
-    const dataset = global.ctx.gameOverDS[0];
+    const dataset = app.ctx.gameOverDS[0];
     const bbox = document.getElementById('gameOver').getBBox();
-    dataset.x = global.ctx.svgDS.width / 2 - bbox.width / 2;
-    dataset.y = global.ctx.svgDS.height / 2 - bbox.height / 2;
+    dataset.x = app.ctx.svgDS.width / 2 - bbox.width / 2;
+    dataset.y = app.ctx.svgDS.height / 2 - bbox.height / 2;
   }
 
   drawGameOver($gameover) {

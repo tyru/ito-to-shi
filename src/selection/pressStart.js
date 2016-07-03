@@ -2,18 +2,18 @@
 
 import d3 from 'd3'
 import 'd3-jetpack'
-import * as global from '../global.js'
+import {app} from '../app.js'
 
 export default class PressStartSelection {
   getPressStart() {
-    return global.$svg.selectAll('#pressStart').data(global.ctx.pressStartDS);
+    return app.$svg.selectAll('#pressStart').data(app.ctx.pressStartDS);
   }
 
   movePressStart() {
-    const dataset = global.ctx.pressStartDS[0];
+    const dataset = app.ctx.pressStartDS[0];
     const bbox = document.getElementById('pressStart').getBBox();
-    dataset.x = global.ctx.svgDS.width / 2 - bbox.width / 2;
-    dataset.y = global.ctx.svgDS.height / 2 - bbox.height / 2;
+    dataset.x = app.ctx.svgDS.width / 2 - bbox.width / 2;
+    dataset.y = app.ctx.svgDS.height / 2 - bbox.height / 2;
   }
 
   drawPressStart($pressStart) {

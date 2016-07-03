@@ -1,21 +1,22 @@
-import * as global from '../global.js'
+import {app} from '../app.js'
+import * as constant from '../constant.js'
 
 export default class GameOverScreen {
   init() {
     // Draw at hidden point to get bbox width & height.
-    global.ctx.gameOverDS = [{  // <text>
+    app.ctx.gameOverDS = [{  // <text>
       x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
     }];
-    global.gameOverSelection.drawGameOver(global.gameOverSelection.getGameOver());
+    app.gameOverSelection.drawGameOver(app.gameOverSelection.getGameOver());
     // Move to visible point
-    global.gameOverSelection.moveGameOver();
-    global.gameOverSelection.drawGameOver(global.gameOverSelection.getGameOver());
+    app.gameOverSelection.moveGameOver();
+    app.gameOverSelection.drawGameOver(app.gameOverSelection.getGameOver());
   }
 
   touchStart() {
-    global.initContext(global.getInitVars(global.selectedMode));
-    global.gameOverSelection.drawGameOver(global.gameOverSelection.getGameOver());
-    global.screenDispatcher.changeScreen(global.SCR_RUNNING);
+    app.initContext(app.selectedMode);
+    app.gameOverSelection.drawGameOver(app.gameOverSelection.getGameOver());
+    app.screenDispatcher.changeScreen(constant.SCR_RUNNING);
   }
 
   touchEnd() { }

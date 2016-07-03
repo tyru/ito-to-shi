@@ -2,11 +2,11 @@
 
 import d3 from 'd3'
 import 'd3-jetpack'
-import * as global from '../global.js'
+import {app} from '../app.js'
 
 export default class StatusSelection {
   getStatusText() {
-    return global.$svg.selectAll('#statusText').data(global.ctx.statusTextDS);
+    return app.$svg.selectAll('#statusText').data(app.ctx.statusTextDS);
   }
 
   drawStatusText($statusText) {
@@ -16,8 +16,8 @@ export default class StatusSelection {
       .attr('y', d3.f('y'))
       .attr('font-size', d3.f('fontSize'));
     // Update
-    const mm = global.getMmByLevel(global.ctx.level);
-    const distanceX = global.getDistanceXByLevel(global.ctx.level);
+    const mm = app.getMmByLevel(app.ctx.level);
+    const distanceX = app.getDistanceXByLevel(app.ctx.level);
     $statusText
       .text(function(d) { return `${d.mode} ${d.score}本 針穴${mm}mm 距離${distanceX}m`; });
   }

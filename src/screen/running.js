@@ -1,40 +1,41 @@
-import * as global from '../global.js'
+import {app} from '../app.js'
+import * as constant from '../constant.js'
 
 export default class RunningScreen {
   init() {
-    global.levelUpSelection.drawLevelUpText(global.levelUpSelection.getLevelUpText());
-    global.threadSelection.drawThread(global.threadSelection.getThread());
-    global.needleSelection.makeNeedles();
-    global.needleSelection.drawNeedles(global.needleSelection.getNeedles());
-    global.statusSelection.drawStatusText(global.statusSelection.getStatusText());
+    app.levelUpSelection.drawLevelUpText(app.levelUpSelection.getLevelUpText());
+    app.threadSelection.drawThread(app.threadSelection.getThread());
+    app.needleSelection.makeNeedles();
+    app.needleSelection.drawNeedles(app.needleSelection.getNeedles());
+    app.statusSelection.drawStatusText(app.statusSelection.getStatusText());
   }
 
   update() {
     // score -> level -> mm
     function calcLevelByScore(score) {
-      if (global.ctx.level + 1 < global.ctx.scoreMmMap.length) {
-        if (score >= global.getScoreByLevel(global.ctx.level + 1)) {
-          return global.ctx.level + 1;
+      if (app.ctx.level + 1 < app.ctx.scoreMmMap.length) {
+        if (score >= app.getScoreByLevel(app.ctx.level + 1)) {
+          return app.ctx.level + 1;
         }
-        return global.ctx.level;
+        return app.ctx.level;
       } else {
-        return Math.min(global.ctx.level, global.ctx.scoreMmMap.length - 1);
+        return Math.min(app.ctx.level, app.ctx.scoreMmMap.length - 1);
       }
     }
     // Detect collisions with thread & needles.
     function detectCollision() {
       let doContinue = true;
-      const thread = global.ctx.threadDS[0];
-      const statusText = global.ctx.statusTextDS[0];
-      global.needleSelection.getNeedles().each(function(d) {
+      const thread = app.ctx.threadDS[0];
+      const statusText = app.ctx.statusTextDS[0];
+      app.needleSelection.getNeedles().each(function(d) {
         if (d.passed) return;
-        const mm = global.getMmByLevel(global.ctx.level);
-        const fromY = d.y + global.NEEDLE_HOLE_DY;
+        const mm = app.getMmByLevel(app.ctx.level);
+        const fromY = d.y + constant.NEEDLE_HOLE_DY;
         const toY = fromY + mm;
         if (thread.cx >= d.x) {
           if (fromY <= thread.cy - thread.r && thread.cy + thread.r <= toY) { // Passed
             statusText.score++;
-            global.ctx.level = calcLevelByScore(statusText.score); // May Lv. Up
+            app.ctx.level = calcLevelByScore(statusText.score); // May Lv. Up
             d.passed = true;
           } else {  // Failed
             doContinue = false;
@@ -45,31 +46,31 @@ export default class RunningScreen {
     }
 
     // Move objects
-    let doContinue = global.threadSelection.moveThread();
-    global.needleSelection.moveNeedles();
-    const oldLevel = global.ctx.level;
+    let doContinue = app.threadSelection.moveThread();
+    app.needleSelection.moveNeedles();
+    const oldLevel = app.ctx.level;
     doContinue = detectCollision() && doContinue;
-    global.levelUpSelection.moveLevelUpText(oldLevel !== global.ctx.level);
+    app.levelUpSelection.moveLevelUpText(oldLevel !== app.ctx.level);
     // Update screen
-    global.threadSelection.drawThread(global.threadSelection.getThread());
-    global.needleSelection.drawNeedles(global.needleSelection.getNeedles());
-    global.statusSelection.drawStatusText(global.statusSelection.getStatusText());
-    global.levelUpSelection.drawLevelUpText(global.levelUpSelection.getLevelUpText());
+    app.threadSelection.drawThread(app.threadSelection.getThread());
+    app.needleSelection.drawNeedles(app.needleSelection.getNeedles());
+    app.statusSelection.drawStatusText(app.statusSelection.getStatusText());
+    app.levelUpSelection.drawLevelUpText(app.levelUpSelection.getLevelUpText());
     // GAME OVER
     if (!doContinue) {
-      global.screenDispatcher.changeScreen(global.SCR_GAMEOVER);
+      app.screenDispatcher.changeScreen(constant.SCR_GAMEOVER);
     }
   }
 
   getInterval() {
-    return global.THIRTY_FPS;
+    return constant.THIRTY_FPS;
   }
 
   touchStart() {
-    global.ctx.hovering = true;
+    app.ctx.hovering = true;
   }
 
   touchEnd() {
-    global.ctx.hovering = false;
+    app.ctx.hovering = false;
   }
 }

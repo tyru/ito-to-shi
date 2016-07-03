@@ -2,24 +2,24 @@
 
 import d3 from 'd3'
 import 'd3-jetpack'
-import * as global from '../global.js'
+import {app} from '../app.js'
 
 export default class SelectModeScreenSelection {
   getSelectModeScreen() {
-    return global.$svg.selectAll('.selectModeScreen').data(global.ctx.selectModeScreenDS);
+    return app.$svg.selectAll('.selectModeScreen').data(app.ctx.selectModeScreenDS);
   }
 
   makeSelectModeScreen() {
-    global.ctx.selectModeScreenDS = [{
-      x: 0, y: 0, fill: 'black', width: global.ctx.svgDS.width, height: global.ctx.svgDS.height
+    app.ctx.selectModeScreenDS = [{
+      x: 0, y: 0, fill: 'black', width: app.ctx.svgDS.width, height: app.ctx.svgDS.height
     }];
-    global.ctx.selectModeButtonRectDS = [
+    app.ctx.selectModeButtonRectDS = [
       {x: 40, y: 30, fill: 'green', width: 110, height: 70},
       {x: 180, y: 30, fill: 'blue', width: 110, height: 70},
       {x: 40, y: 130, fill: 'red', width: 110, height: 70},
       {x: 180, y: 130, fill: 'purple', width: 110, height: 70}
     ];
-    global.ctx.selectModeButtonTextDS = [
+    app.ctx.selectModeButtonTextDS = [
       {x: 60, y: 70, fontSize: '24px', text: 'EASY', fill: 'white'},
       {x: 190, y: 70, fontSize: '24px', text: 'NORMAL', fill: 'white'},
       {x: 60, y: 170, fontSize: '24px', text: 'HARD', fill: 'white'},
@@ -28,9 +28,9 @@ export default class SelectModeScreenSelection {
   }
 
   clearSelectModeScreen() {
-    global.ctx.selectModeScreenDS = [];
-    global.ctx.selectModeButtonRectDS = [];
-    global.ctx.selectModeButtonTextDS = [];
+    app.ctx.selectModeScreenDS = [];
+    app.ctx.selectModeButtonRectDS = [];
+    app.ctx.selectModeButtonTextDS = [];
   }
 
   drawSelectModeScreen($selectModeScreen) {
@@ -46,14 +46,14 @@ export default class SelectModeScreenSelection {
 
     const selectMode = function() {
       const mode = d3.select(this).attr('data-mode');
-      if (mode !== '') global.setSelectedMode(mode);
+      if (mode !== '') app.selectedMode = mode;
     };
     $selectModeScreen
       .selectAll('rect.selectModeButtonRectDS')
-      .data(global.ctx.selectModeButtonRectDS)
+      .data(app.ctx.selectModeButtonRectDS)
       .enter().append('rect.selectModeButtonRectDS')
         .attr('data-mode', function(_, i) {
-          return global.ctx.selectModeButtonTextDS[i].text;
+          return app.ctx.selectModeButtonTextDS[i].text;
         })
         .attr('x', d3.f('x'))
         .attr('y', d3.f('y'))
@@ -63,7 +63,7 @@ export default class SelectModeScreenSelection {
         .on('touchstart mousedown', selectMode);
     $selectModeScreen
       .selectAll('text.selectModeButtonTextDS.disable-select')
-      .data(global.ctx.selectModeButtonTextDS)
+      .data(app.ctx.selectModeButtonTextDS)
       .enter().append('text.selectModeButtonTextDS.disable-select')
         .attr('data-mode', d3.f('text'))
         .attr('x', d3.f('x'))

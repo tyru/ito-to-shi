@@ -1,4 +1,4 @@
-import * as global from './global.js'
+import {app} from './app.js'
 
 export function randNumBetween(start, end) {
   return Math.random() * (end - start) + start;
@@ -22,5 +22,5 @@ export function assert(cond, msg) {
 export function shouldAnimate(dataset) {
   if (dataset && !dataset.animate)
     return false;
-  return global.ctx.animateGlobal;
+  return app.ctx.animateGlobal;
 };

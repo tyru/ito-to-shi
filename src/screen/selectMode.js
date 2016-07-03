@@ -1,17 +1,18 @@
-import * as global from '../global.js'
+import {app} from '../app.js'
+import * as constant from '../constant.js'
 
 export default class SelectModeScreen {
   init() {
-    global.selectModeScreenSelection.makeSelectModeScreen();
-    global.selectModeScreenSelection.drawSelectModeScreen(global.selectModeScreenSelection.getSelectModeScreen());
+    app.selectModeScreenSelection.makeSelectModeScreen();
+    app.selectModeScreenSelection.drawSelectModeScreen(app.selectModeScreenSelection.getSelectModeScreen());
   }
 
   touchStart() {
-    if (global.selectedMode !== '') {
-      global.initContext(global.getInitVars(global.selectedMode));
-      global.selectModeScreenSelection.clearSelectModeScreen(global.selectModeScreenSelection.getSelectModeScreen());
-      global.selectModeScreenSelection.drawSelectModeScreen(global.selectModeScreenSelection.getSelectModeScreen());
-      global.screenDispatcher.changeScreen(global.SCR_RUNNING);
+    if (app.selectedMode !== '') {
+      app.initContext(app.selectedMode);
+      app.selectModeScreenSelection.clearSelectModeScreen(app.selectModeScreenSelection.getSelectModeScreen());
+      app.selectModeScreenSelection.drawSelectModeScreen(app.selectModeScreenSelection.getSelectModeScreen());
+      app.screenDispatcher.changeScreen(constant.SCR_RUNNING);
     }
   }
 

@@ -1,4 +1,5 @@
-import * as global from '../global.js'
+import {app} from '../app.js'
+import * as constant from '../constant.js'
 
 export default class InitialScreen {
   constructor() {
@@ -6,20 +7,20 @@ export default class InitialScreen {
   }
 
   init() {
-    global.threadSelection.drawThread(global.threadSelection.getThread());
-    global.needleSelection.makeNeedles();
-    global.needleSelection.drawNeedles(global.needleSelection.getNeedles());
-    global.statusSelection.drawStatusText(global.statusSelection.getStatusText());
+    app.threadSelection.drawThread(app.threadSelection.getThread());
+    app.needleSelection.makeNeedles();
+    app.needleSelection.drawNeedles(app.needleSelection.getNeedles());
+    app.statusSelection.drawStatusText(app.statusSelection.getStatusText());
 
     // Draw at hidden point to get bbox width & height.
-    global.ctx.pressStartDS = [{  // <text>
+    app.ctx.pressStartDS = [{  // <text>
       x: -99, y: -99, fontSize: '24px', text: 'PRESS START',
       fill: 'black'
     }];
-    global.pressStartSelection.drawPressStart(global.pressStartSelection.getPressStart());
+    app.pressStartSelection.drawPressStart(app.pressStartSelection.getPressStart());
     // Move to visible point
-    global.pressStartSelection.movePressStart();
-    global.pressStartSelection.drawPressStart(global.pressStartSelection.getPressStart());
+    app.pressStartSelection.movePressStart();
+    app.pressStartSelection.drawPressStart(app.pressStartSelection.getPressStart());
   }
 
   update() {
@@ -31,9 +32,9 @@ export default class InitialScreen {
   }
 
   touchStart() {
-    global.ctx.pressStartDS = [];
-    global.pressStartSelection.drawPressStart(global.pressStartSelection.getPressStart());
-    global.screenDispatcher.changeScreen(global.SCR_SELECT_MODE);
+    app.ctx.pressStartDS = [];
+    app.pressStartSelection.drawPressStart(app.pressStartSelection.getPressStart());
+    app.screenDispatcher.changeScreen(constant.SCR_SELECT_MODE);
   }
 
   touchEnd() { }

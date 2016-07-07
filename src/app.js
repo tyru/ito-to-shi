@@ -193,10 +193,6 @@ class App {
     };
   }
 
-  getInitialNeedleHoleHeight() {
-    return this.getMmByLevel(0, this._getModeContext(NORMAL_MODE)[0]);
-  }
-
   // @returns Least score
   // @seealso this.ctx.scoreMmMap
   getScoreByLevel(level) {
@@ -207,11 +203,9 @@ class App {
   // @returns Hole height (mm)
   //          NOTE: Actually returns 'px' number, not 'mm' ... ;)
   // @seealso this.ctx.scoreMmMap
-  // @seealso getInitialNeedleHoleHeight()
-  //          (for optional argument)
-  getMmByLevel(level, scoreMmMap = this.ctx.scoreMmMap) {
-    level = Math.min(level, scoreMmMap.length - 1);
-    return scoreMmMap[level][1];
+  getMmByLevel(level) {
+    level = Math.min(level, this.ctx.scoreMmMap.length - 1);
+    return this.ctx.scoreMmMap[level][1];
   }
 
   // @returns distanceX

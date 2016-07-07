@@ -12,17 +12,17 @@ export default class NeedleSelection {
     this.needleGroupDS = [];    // <rect>
     this.needlePoleDS = [];    // <rect>
     this.needleHoleDS = [];    // <rect>
+  }
 
+  makeNeedles() {
     this._needlePoleDSTemplate = {  // <rect>
       x: 0, y: 0, fill: 'gray', width: 10, height: app.getSvgDS().height, animate: true
     };
     this._needleHoleDSTemplate = {  // <rect>
       x: 2, y: constant.NEEDLE_HOLE_DY, fill: 'white',
-      width: 6, height: app.getInitialNeedleHoleHeight(), animate: true
+      width: 6, height: app.getMmByLevel(0), animate: true
     };
-  }
 
-  makeNeedles() {
     // To place the next needle when hole height (mm) is changed,
     // We must have enough number of needles on screen (even if invisible).
     const svgDS = app.getSvgDS();
@@ -75,8 +75,8 @@ export default class NeedleSelection {
       needleGroupDS.passed = false;
       // Change next level needle's height.
       this.needleHoleDS[willMove].height = mm;
+      // Add a new needle if necessary.
       if (level > app.ctx.level) {
-        // Add a new needle if necessary.
         const nextNeedleNum = Math.floor(svgDS.width / app.getDistanceXByLevel(app.ctx.level + 1) + 2);
         util.assert(nextNeedleNum >= this.needleGroupDS.length,
               'Lv.UP must not cause app.getMmByLevel() to be smaller number');
@@ -92,6 +92,7 @@ export default class NeedleSelection {
             });
             this.needlePoleDS.push(util.cloneObject(this._needlePoleDSTemplate));
             this.needleHoleDS.push(util.cloneObject(this._needleHoleDSTemplate));
+            this.needleHoleDS[this.needleHoleDS.length - 1].height = mm;
             objX += distanceX;
           }
         }

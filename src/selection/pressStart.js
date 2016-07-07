@@ -9,10 +9,6 @@ export default class PressStartSelection {
     this.pressStartDS = [];
   }
 
-  getPressStart() {
-    return app.$svg.selectAll('#pressStart').data(this.pressStartDS);
-  }
-
   resetPressStart() {
     this.pressStartDS = [];
   }
@@ -29,6 +25,10 @@ export default class PressStartSelection {
     const bbox = document.getElementById('pressStart').getBBox();
     dataset.x = app.ctx.svgDS.width / 2 - bbox.width / 2;
     dataset.y = app.ctx.svgDS.height / 2 - bbox.height / 2;
+  }
+
+  getPressStart() {
+    return app.$svg.selectAll('#pressStart').data(this.pressStartDS);
   }
 
   drawPressStart($pressStart) {

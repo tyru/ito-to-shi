@@ -11,10 +11,6 @@ export default class GameOverSelection {
     }];
   }
 
-  getGameOver() {
-    return app.$svg.selectAll('#gameOver').data(this.gameOverDS);
-  }
-
   makeHiddenGameOver() {
     this.gameOverDS = [{  // <text>
       x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
@@ -26,6 +22,10 @@ export default class GameOverSelection {
     const bbox = document.getElementById('gameOver').getBBox();
     dataset.x = app.ctx.svgDS.width / 2 - bbox.width / 2;
     dataset.y = app.ctx.svgDS.height / 2 - bbox.height / 2;
+  }
+
+  getGameOver() {
+    return app.$svg.selectAll('#gameOver').data(this.gameOverDS);
   }
 
   drawGameOver($gameover) {

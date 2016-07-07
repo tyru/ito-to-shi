@@ -11,10 +11,6 @@ export default class SelectModeScreenSelection {
     this.selectModeButtonTextDS = [];    // <text>
   }
 
-  getSelectModeScreen() {
-    return app.$svg.selectAll('.selectModeScreen').data(this.selectModeScreenDS);
-  }
-
   makeSelectModeScreen() {
     this.selectModeScreenDS = [{
       x: 0, y: 0, fill: 'black', width: app.ctx.svgDS.width, height: app.ctx.svgDS.height
@@ -37,6 +33,10 @@ export default class SelectModeScreenSelection {
     this.selectModeScreenDS = [];
     this.selectModeButtonRectDS = [];
     this.selectModeButtonTextDS = [];
+  }
+
+  getSelectModeScreen() {
+    return app.$svg.selectAll('.selectModeScreen').data(this.selectModeScreenDS);
   }
 
   drawSelectModeScreen($selectModeScreen) {

@@ -19,10 +19,6 @@ export default class ThreadSelection {
     return this._threadDS[0];
   }
 
-  getThread() {
-    return app.$svg.selectAll('.thread').data(this._threadDS);
-  }
-
   moveThread() {
     const dataset = this._threadDS[0];
     if (!app.ctx.hovering) {
@@ -36,6 +32,10 @@ export default class ThreadSelection {
     }
     dataset.cy += dataset.a;
     return dataset.cy < app.ctx.svgDS.height + app.ctx.threadGameOverGapY;
+  }
+
+  getThread() {
+    return app.$svg.selectAll('.thread').data(this._threadDS);
   }
 
   drawThread($thread) {

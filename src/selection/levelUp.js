@@ -12,10 +12,6 @@ export default class LevelUpSelection {
     }];
   }
 
-  getLevelUpText() {
-    return app.$svg.selectAll('#levelUp').data(this.levelUpDS);
-  }
-
   moveLevelUpText(show) {
     const dataset = this.levelUpDS[0];
     if (show) { // Start
@@ -28,6 +24,10 @@ export default class LevelUpSelection {
       dataset.x = dataset.y = -99;
       delete dataset.endY;
     }
+  }
+
+  getLevelUpText() {
+    return app.$svg.selectAll('#levelUp').data(this.levelUpDS);
   }
 
   drawLevelUpText($pressStart) {

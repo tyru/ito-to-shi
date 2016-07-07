@@ -41,12 +41,6 @@ export default class NeedleSelection {
     }
   }
 
-  // Need to access to moving objects via D3 API.
-  // (Saving to '$needles' variable leaves old objects in screen...)
-  getNeedles() {
-    return app.$svg.selectAll('g.needle').data(this.needleGroupDS);
-  }
-
   moveNeedles() {
     let willMove = -1;
     let maxRightX = -1;
@@ -103,6 +97,12 @@ export default class NeedleSelection {
         }
       }
     }
+  }
+
+  // Need to access to moving objects via D3 API.
+  // (Saving to '$needles' variable leaves old objects in screen...)
+  getNeedles() {
+    return app.$svg.selectAll('g.needle').data(this.needleGroupDS);
   }
 
   drawNeedles($needles) {

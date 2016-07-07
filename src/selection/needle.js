@@ -73,9 +73,9 @@ export default class NeedleSelection {
       needleGroupDS.y = util.randNumBetween(0, svgDS.height - mm);
       needleGroupDS.animate = false;
       needleGroupDS.passed = false;
+      // Change next level needle's height.
+      this.needleHoleDS[willMove].height = mm;
       if (level > app.ctx.level) {
-        // Change next level needle's height.
-        this.needleHoleDS[willMove].height = mm;
         // Add a new needle if necessary.
         const nextNeedleNum = Math.floor(svgDS.width / app.getDistanceXByLevel(app.ctx.level + 1) + 2);
         util.assert(nextNeedleNum >= this.needleGroupDS.length,

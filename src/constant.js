@@ -1,3 +1,5 @@
+export const INITIAL_SCREEN_BLINK_INTERVAL = 500;
+
 export const SCR_INITIAL = 1;
 export const SCR_SELECT_MODE = 2;
 export const SCR_RUNNING = 3;

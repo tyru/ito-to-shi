@@ -4,7 +4,7 @@ import * as constant from '../constant.js'
 export default class InitialScreen {
   constructor() {
     this._blink = true;
-    this._prevUpdated = 0;
+    this._totalElapsedMs = 0;
   }
 
   init() {
@@ -21,14 +21,14 @@ export default class InitialScreen {
     app.pressStartSelection.drawPressStart(app.pressStartSelection.getPressStart());
   }
 
-  // Update per 1 second.
+  // Blink "PRESS START" text per INITIAL_SCREEN_BLINK_INTERVAL.
   update(elapsedMs) {
-    this._prevUpdated += elapsedMs;
-    const mod = this._prevUpdated % 1000;
+    this._totalElapsedMs += elapsedMs;
+    const mod = this._totalElapsedMs % constant.INITIAL_SCREEN_BLINK_INTERVAL;
     if (mod) {
       this._blink = !this._blink;
     }
-    this._prevUpdated = mod;
+    this._totalElapsedMs = mod;
   }
 
   getInterval() {

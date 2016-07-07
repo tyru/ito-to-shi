@@ -46,7 +46,7 @@ export default class ThreadSelection {
       .attr('r', d => d.r)
       .attr('fill', d => d.fill);
     // Update
-    $thread.transition().duration(util.shouldAnimate() ? constant.THIRTY_FPS : 0)
+    $thread.transition().duration(util.shouldAnimate() ? constant.THE_FPS : 0)
       .attr('transform', function(d) {
         return `translate(${d.cx},${d.cy})`;
       });

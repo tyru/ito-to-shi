@@ -10,45 +10,18 @@ export default class RunningScreen {
     app.statusSelection.drawStatusText(app.statusSelection.getStatusText());
   }
 
-  update() {
-    // score -> level -> mm
-    function calcLevelByScore(score) {
-      if (app.ctx.level + 1 < app.ctx.scoreMmMap.length) {
-        if (score >= app.getScoreByLevel(app.ctx.level + 1)) {
-          return app.ctx.level + 1;
-        }
-        return app.ctx.level;
-      } else {
-        return Math.min(app.ctx.level, app.ctx.scoreMmMap.length - 1);
-      }
-    }
-    // Detect collisions with thread & needles.
-    function detectCollision() {
-      let doContinue = true;
-      app.needleSelection.getNeedles().each(function(d) {
-        if (d.passed) return;
-        const mm = app.getMmByLevel(app.ctx.level);
-        const fromY = d.y + constant.NEEDLE_HOLE_DY;
-        const toY = fromY + mm;
-        const thread = app.threadDS;
-        if (thread.cx >= d.x) {
-          if (fromY <= thread.cy - thread.r && thread.cy + thread.r <= toY) { // Passed
-            app.statusTextScore++;
-            app.ctx.level = calcLevelByScore(app.statusTextScore); // May Lv. Up
-            d.passed = true;
-          } else {  // Failed
-            doContinue = false;
-          }
-        }
-      });
-      return doContinue;
-    }
+  update(stepFrames) {
+    for (let i = 0; i < stepFrames; ++i)
+      if (!this._doUpdate())
+        break;
+  }
 
+  _doUpdate() {
     // Move objects
     let doContinue = app.threadSelection.moveThread();
     app.needleSelection.moveNeedles();
     const oldLevel = app.ctx.level;
-    doContinue = detectCollision() && doContinue;
+    doContinue = this._detectCollision() && doContinue;
     app.levelUpSelection.moveLevelUpText(oldLevel !== app.ctx.level);
     // Update screen
     app.threadSelection.drawThread(app.threadSelection.getThread());
@@ -59,10 +32,45 @@ export default class RunningScreen {
     if (!doContinue) {
       app.screenDispatcher.changeScreen(constant.SCR_GAMEOVER);
     }
+    return doContinue;
+  }
+
+  // Detect collisions with thread & needles.
+  _detectCollision() {
+    let doContinue = true;
+    app.needleSelection.getNeedles().each(d => {
+      if (d.passed) return;
+      const mm = app.getMmByLevel(app.ctx.level);
+      const fromY = d.y + constant.NEEDLE_HOLE_DY;
+      const toY = fromY + mm;
+      const thread = app.threadDS;
+      if (thread.cx >= d.x) {
+        if (fromY <= thread.cy - thread.r && thread.cy + thread.r <= toY) { // Passed
+          app.statusTextScore++;
+          app.ctx.level = this._calcLevelByScore(app.statusTextScore); // May Lv. Up
+          d.passed = true;
+        } else {  // Failed
+          doContinue = false;
+        }
+      }
+    });
+    return doContinue;
+  }
+
+  // score -> level -> mm
+  _calcLevelByScore(score) {
+    if (app.ctx.level + 1 < app.ctx.scoreMmMap.length) {
+      if (score >= app.getScoreByLevel(app.ctx.level + 1)) {
+        return app.ctx.level + 1;
+      }
+      return app.ctx.level;
+    } else {
+      return Math.min(app.ctx.level, app.ctx.scoreMmMap.length - 1);
+    }
   }
 
   getInterval() {
-    return constant.THIRTY_FPS;
+    return constant.THE_FPS;
   }
 
   touchStart() {

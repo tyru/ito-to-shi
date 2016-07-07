@@ -3,15 +3,17 @@ import * as constant from '../constant.js'
 
 export default class SelectModeScreen {
   init() {
-    app.selectModeScreenSelection.makeSelectModeScreen();
-    app.selectModeScreenSelection.drawSelectModeScreen(app.selectModeScreenSelection.getSelectModeScreen());
+    const selection = app.selectModeScreenSelection;
+    selection.makeSelectModeScreen();
+    selection.drawSelectModeScreen(selection.getSelectModeScreen());
   }
 
   touchStart() {
     if (app.selectedMode !== '') {
       app.initContext(app.selectedMode);
-      app.selectModeScreenSelection.resetSelectModeScreen(app.selectModeScreenSelection.getSelectModeScreen());
-      app.selectModeScreenSelection.drawSelectModeScreen(app.selectModeScreenSelection.getSelectModeScreen());
+      const selection = app.selectModeScreenSelection;
+      selection.resetSelectModeScreen(selection.getSelectModeScreen());
+      selection.drawSelectModeScreen(selection.getSelectModeScreen());
       app.screenDispatcher.changeScreen(constant.SCR_RUNNING);
     }
   }

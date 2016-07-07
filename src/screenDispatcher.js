@@ -6,9 +6,13 @@ import 'd3-jetpack'
 import {app} from './app.js'
 
 export default class ScreenDispatcher {
-  constructor(screenId) {
+  constructor(id) {
     this.screens = {};
-    this.currentScreenId = screenId;
+    this.screenId = id;
+  }
+
+  setScreenId(id) {
+    this.screenId = id;
   }
 
   register(id, func) {
@@ -16,11 +20,6 @@ export default class ScreenDispatcher {
   }
 
   changeScreen(id) {
-    // Clear timer
-    if (app.ctx.theTimer) {
-      clearInterval(app.ctx.theTimer);
-      app.ctx.theTimer = null;
-    }
     const screen = this.screens[id];
     if (!screen) {
       return;
@@ -31,19 +30,15 @@ export default class ScreenDispatcher {
       screen.init();
       app.ctx.animateGlobal = true;
     }
-    // Update draw function
-    if (screen.update && screen.getInterval) {
-      app.ctx.theTimer = setInterval(screen.update, screen.getInterval());
-    }
-    this.currentScreenId = id;
+    this.screenId = id;
   }
 
   touchStart() {
     d3.event.preventDefault();    // Don't propagate click event to outside <svg> tag
-    this.screens[this.currentScreenId].touchStart(...arguments);
+    this.screens[this.screenId].touchStart(...arguments);
   }
 
   touchEnd() {
-    this.screens[this.currentScreenId].touchEnd(...arguments);
+    this.screens[this.screenId].touchEnd(...arguments);
   }
 }

@@ -130,7 +130,7 @@ export default class NeedleSelection {
     $needles.each(function(d) {
       // http://stackoverflow.com/questions/26903355/how-to-cancel-scheduled-transition-in-d3
         d3.select(this)
-          .transition().duration(util.shouldAnimate(d) ? constant.THIRTY_FPS : 0)
+          .transition().duration(util.shouldAnimate(d) ? constant.THE_FPS : 0)
           .attr('transform', `translate(${d.x},${d.y})`);
     });
     const $needleHoles =

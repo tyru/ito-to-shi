@@ -20,8 +20,10 @@ export default class InitialScreen {
     app.pressStartSelection.drawPressStart(app.pressStartSelection.getPressStart());
   }
 
-  update() {
-    this.blink = !this.blink;
+  update(stepFrames) {
+    if (stepFrames % 2) {
+      this.blink = !this.blink;
+    }
   }
 
   getInterval() {

@@ -5,29 +5,41 @@ import 'd3-jetpack'
 import {app} from '../app.js'
 
 export default class GameOverSelection {
-  getGameOver() {
-    return app.$svg.selectAll('#gameOver').data(app.ctx.gameOverDS);
+  constructor() {
+    this.gameOverDS = [{  // <text>
+      x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
+    }];
+  }
+
+  makeHiddenGameOver() {
+    this.gameOverDS = [{  // <text>
+      x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
+    }];
   }
 
   moveGameOver() {
-    const dataset = app.ctx.gameOverDS[0];
+    const dataset = this.gameOverDS[0];
     const bbox = document.getElementById('gameOver').getBBox();
     dataset.x = app.ctx.svgDS.width / 2 - bbox.width / 2;
     dataset.y = app.ctx.svgDS.height / 2 - bbox.height / 2;
   }
 
+  getGameOver() {
+    return app.$svg.selectAll('#gameOver').data(this.gameOverDS);
+  }
+
   drawGameOver($gameover) {
     // Enter
     $gameover.enter().append('text#gameOver.disable-select')
-      .attr('font-size', d3.f('fontSize'))
-      .text(d3.f('text'));
+      .attr('font-size', d => d.fontSize)
+      .text(d => d.text);
 
     // Exit
     $gameover.exit().remove();
 
     // Update
     $gameover
-      .attr('x', d3.f('x'))
-      .attr('y', d3.f('y'))
+      .attr('x', d => d.x)
+      .attr('y', d => d.y)
   }
 }

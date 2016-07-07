@@ -13,10 +13,7 @@ export default class InitialScreen {
     app.statusSelection.drawStatusText(app.statusSelection.getStatusText());
 
     // Draw at hidden point to get bbox width & height.
-    app.ctx.pressStartDS = [{  // <text>
-      x: -99, y: -99, fontSize: '24px', text: 'PRESS START',
-      fill: 'black'
-    }];
+    app.pressStartSelection.makeHiddenPressStart();
     app.pressStartSelection.drawPressStart(app.pressStartSelection.getPressStart());
     // Move to visible point
     app.pressStartSelection.movePressStart();
@@ -32,7 +29,7 @@ export default class InitialScreen {
   }
 
   touchStart() {
-    app.ctx.pressStartDS = [];
+    app.pressStartSelection.resetPressStart();
     app.pressStartSelection.drawPressStart(app.pressStartSelection.getPressStart());
     app.screenDispatcher.changeScreen(constant.SCR_SELECT_MODE);
   }

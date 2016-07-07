@@ -81,8 +81,7 @@ export default class NeedleSelection {
       needleGroupDS.passed = false;
       if (level > app.ctx.level) {
         // Change next level needle's height.
-        const needlePoleDS = this.needlePoleDS[willMove];
-        needlePoleDS.height = mm;
+        this.needleHoleDS[willMove].height = mm;
         // Add a new needle if necessary.
         const nextNeedleNum = Math.floor(svgDS.width / app.getDistanceXByLevel(app.ctx.level + 1) + 2);
         util.assert(nextNeedleNum >= this.needleGroupDS.length,
@@ -108,23 +107,23 @@ export default class NeedleSelection {
 
   drawNeedles($needles) {
     // Enter
-    $needles.enter().append('g.needle');
-    const $needlePoles = $needles.selectAll('g.needle rect.pole').data(this.needlePoleDS);
-    $needlePoles
-      .enter().append('rect.pole')
-        .attr('x', d => d.x)
-        .attr('y', d => d.y)
-        .attr('fill', d => d.fill)
-        .attr('width', d => d.width)
-        .attr('height', d => d.height);
-    const $needleHoles = $needles.selectAll('g.needle rect.hole').data(this.needleHoleDS);
-    $needleHoles
-      .enter().append('rect.hole')
-        .attr('x', d => d.x)
-        .attr('y', d => d.y)
-        .attr('fill', d => d.fill)
-        .attr('width', d => d.width)
-        .attr('height', d => d.height);
+    const poleDS = this.needlePoleDS, holeDS = this.needleHoleDS;
+    $needles.enter().append('g.needle').each(function(d) {
+      d3.select(this).data(poleDS)
+        .append('rect.pole')
+          .attr('x', d => d.x)
+          .attr('y', d => d.y)
+          .attr('fill', d => d.fill)
+          .attr('width', d => d.width)
+          .attr('height', d => d.height);
+      d3.select(this).data(holeDS)
+        .append('rect.hole')
+          .attr('x', d => d.x)
+          .attr('y', d => d.y)
+          .attr('fill', d => d.fill)
+          .attr('width', d => d.width)
+          .attr('height', d => d.height)
+    });
 
     // Update
     // Move with animation.
@@ -134,6 +133,9 @@ export default class NeedleSelection {
           .transition().duration(util.shouldAnimate(d) ? constant.THIRTY_FPS : 0)
           .attr('transform', `translate(${d.x},${d.y})`);
     });
+    const $needleHoles =
+      $needles.selectAll('g.needle rect.hole')
+              .data((_, i) => [holeDS[i]])
     $needleHoles.attr('height', d => d.height);
 
     // Exit

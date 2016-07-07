@@ -1,6 +1,6 @@
 {
   "name": "ito-to-shi",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "スマホやPCで暇なとき遊べる懐かしの糸通しゲーム",
   "main": "src/itotoshi.js",
   "scripts": {

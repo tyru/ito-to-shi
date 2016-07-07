@@ -10,19 +10,14 @@ export default class RunningScreen {
     app.statusSelection.drawStatusText(app.statusSelection.getStatusText());
   }
 
-  update(stepFrames) {
-    for (let i = 0; i < stepFrames; ++i)
-      if (!this._doUpdate())
-        break;
-  }
-
-  _doUpdate() {
+  update(elapsedMs) {
+    const movePercent = elapsedMs / constant.THE_FPS;
     // Move objects
-    let doContinue = app.threadSelection.moveThread();
-    app.needleSelection.moveNeedles();
+    let doContinue = app.threadSelection.moveThread(movePercent);
+    app.needleSelection.moveNeedles(movePercent);
     const oldLevel = app.ctx.level;
     doContinue = this._detectCollision() && doContinue;
-    app.levelUpSelection.moveLevelUpText(oldLevel !== app.ctx.level);
+    app.levelUpSelection.moveLevelUpText(oldLevel !== app.ctx.level, movePercent);
     // Update screen
     app.threadSelection.drawThread(app.threadSelection.getThread());
     app.needleSelection.drawNeedles(app.needleSelection.getNeedles());

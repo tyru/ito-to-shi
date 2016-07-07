@@ -19,18 +19,18 @@ export default class ThreadSelection {
     return this._threadDS[0];
   }
 
-  moveThread() {
+  moveThread(movePercent) {
     const dataset = this._threadDS[0];
     if (!app.ctx.hovering) {
       if (dataset.a < app.ctx.maxA) {
-        dataset.a += app.ctx.Da;
+        dataset.a += app.ctx.Da * movePercent;
       }
     } else {
       if (dataset.a > app.ctx.minA) {
-        dataset.a -= app.ctx.Da;
+        dataset.a -= app.ctx.Da * movePercent;
       }
     }
-    dataset.cy += dataset.a;
+    dataset.cy += dataset.a * movePercent;
     return dataset.cy < app.ctx.svgDS.height + app.ctx.threadGameOverGapY;
   }
 

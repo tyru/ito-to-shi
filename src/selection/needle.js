@@ -41,7 +41,7 @@ export default class NeedleSelection {
     }
   }
 
-  moveNeedles() {
+  moveNeedles(movePercent) {
     let willMove = -1;
     let maxRightX = -1;
     let rightsideNeedleNum = 0;
@@ -51,7 +51,7 @@ export default class NeedleSelection {
         util.assert(willMove === -1, '0 <= moving needles <= 1');
         willMove = i;
       } else {
-        d.x += app.ctx.needleDx;
+        d.x += app.ctx.needleDx * movePercent;
         d.animate = true;
       }
       if (d.x > app.threadDS.cx) rightsideNeedleNum++;

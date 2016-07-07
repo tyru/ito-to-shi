@@ -21,7 +21,7 @@ export default class RunningScreen {
     // Update screen
     app.threadSelection.drawThread(app.threadSelection.getThread());
     app.needleSelection.drawNeedles(app.needleSelection.getNeedles());
-    app.statusSelection.drawStatusText(app.statusSelection.getStatusText());
+    app.statusSelection.drawStatusText(app.statusSelection.getStatusText(), elapsedMs);
     app.levelUpSelection.drawLevelUpText(app.levelUpSelection.getLevelUpText());
     // GAME OVER
     if (!doContinue) {

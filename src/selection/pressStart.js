@@ -42,8 +42,10 @@ export default class PressStartSelection {
 
     // Update
     $pressStart
-      .attr('x', d => d.x)
-      .attr('y', d => d.y)
-      .attr('fill', d => d.fill)
+      .attr({
+        'x': d => d.x,
+        'y': d => d.y,
+        'fill': d => d.fill
+      })
   }
 }

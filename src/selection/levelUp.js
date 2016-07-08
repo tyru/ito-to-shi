@@ -33,8 +33,10 @@ export default class LevelUpSelection {
   drawLevelUpText($pressStart) {
     // Enter
     $pressStart.enter().append('text#levelUp.disable-select')
-      .attr('style', 'font-weight: bold;')
-      .attr('font-size', d => d.fontSize)
+      .attr({
+        'style': 'font-weight: bold;',
+        'font-size': d => d.fontSize
+      })
       .text(d => d.text);
 
     // Exit
@@ -42,8 +44,10 @@ export default class LevelUpSelection {
 
     // Update
     $pressStart
-      .attr('x', d => d.x)
-      .attr('y', d => d.y)
-      .attr('fill', d => d.fill)
+      .attr({
+        'x': d => d.x,
+        'y': d => d.y,
+        'fill': d => d.fill
+      })
   }
 }

@@ -38,8 +38,6 @@ export default class GameOverSelection {
     $gameover.exit().remove();
 
     // Update
-    $gameover
-      .attr('x', d => d.x)
-      .attr('y', d => d.y)
+    $gameover.attr({'x': d => d.x, 'y': d => d.y})
   }
 }

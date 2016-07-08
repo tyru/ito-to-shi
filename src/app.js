@@ -38,8 +38,10 @@ class App {
     this._$svg = d3.select("body").select("svg")
       .on('touchstart keydown mousedown', () => this._screenDispatcher.touchStart())
       .on('touchend keyup mouseup', () => this._screenDispatcher.touchEnd())
-      .attr('width', svgDS.width)
-      .attr('height', svgDS.height);
+      .attr({
+        'width': svgDS.width,
+        'height': svgDS.height
+      })
     this.initContext(NORMAL_MODE);
     this._selectedMode = '';
 

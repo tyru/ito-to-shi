@@ -64,10 +64,6 @@ export default class RunningScreen {
     }
   }
 
-  getInterval() {
-    return constant.THE_FPS;
-  }
-
   touchStart() {
     app.ctx.hovering = true;
   }

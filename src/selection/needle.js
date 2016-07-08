@@ -111,18 +111,22 @@ export default class NeedleSelection {
     $needles.enter().append('g.needle').each(function(d) {
       d3.select(this).data(poleDS)
         .append('rect.pole')
-          .attr('x', d => d.x)
-          .attr('y', d => d.y)
-          .attr('fill', d => d.fill)
-          .attr('width', d => d.width)
-          .attr('height', d => d.height);
+          .attr({
+            'x': d => d.x,
+            'y': d => d.y,
+            'fill': d => d.fill,
+            'width': d => d.width,
+            'height': d => d.height
+          })
       d3.select(this).data(holeDS)
         .append('rect.hole')
-          .attr('x', d => d.x)
-          .attr('y', d => d.y)
-          .attr('fill', d => d.fill)
-          .attr('width', d => d.width)
-          .attr('height', d => d.height)
+          .attr({
+            'x': d => d.x,
+            'y': d => d.y,
+            'fill': d => d.fill,
+            'width': d => d.width,
+            'height': d => d.height
+          })
     });
 
     // Update

@@ -44,11 +44,13 @@ export default class SelectModeScreenSelection {
     $selectModeScreen.enter()
       .append('g.selectModeScreen')
       .append('rect')
-        .attr('x', () => 0)
-        .attr('y', () => 0)
-        .attr('fill', d => d.fill)
-        .attr('width', d => d.width)
-        .attr('height', d => d.height)
+        .attr({
+          'x': () => 0,
+          'y': () => 0,
+          'fill': d => d.fill,
+          'width': d => d.width,
+          'height': d => d.height
+        })
 
     const selectMode = function() {
       const mode = d3.select(this).attr('data-mode');
@@ -58,24 +60,28 @@ export default class SelectModeScreenSelection {
       .selectAll('rect.selectModeButtonRectDS')
       .data(this.selectModeButtonRectDS)
       .enter().append('rect.selectModeButtonRectDS')
-        .attr('data-mode', (_, i) => {
-          return this.selectModeButtonTextDS[i].text;
+        .attr({
+          'data-mode': (_, i) => {
+            return this.selectModeButtonTextDS[i].text;
+          },
+          'x': d => d.x,
+          'y': d => d.y,
+          'fill': d => d.fill,
+          'width': d => d.width,
+          'height': d => d.height
         })
-        .attr('x', d => d.x)
-        .attr('y', d => d.y)
-        .attr('fill', d => d.fill)
-        .attr('width', d => d.width)
-        .attr('height', d => d.height)
         .on('touchstart mousedown', selectMode);
     $selectModeScreen
       .selectAll('text.selectModeButtonTextDS.disable-select')
       .data(this.selectModeButtonTextDS)
       .enter().append('text.selectModeButtonTextDS.disable-select')
-        .attr('data-mode', d => d.text)
-        .attr('x', d => d.x)
-        .attr('y', d => d.y)
-        .attr('fill', d => d.fill)
-        .attr('font-size', d => d.fontSize)
+        .attr({
+          'data-mode': d => d.text,
+          'x': d => d.x,
+          'y': d => d.y,
+          'fill': d => d.fill,
+          'font-size': d => d.fontSize
+        })
         .text(d => d.text)
         .on('touchstart mousedown', selectMode);
 

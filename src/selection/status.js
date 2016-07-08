@@ -27,9 +27,11 @@ export default class StatusSelection {
   drawStatusText($statusText, elapsedMs = 0) {
     // Enter
     $statusText.enter().append('text#statusText.disable-select')
-      .attr('x', d => d.x)
-      .attr('y', d => d.y)
-      .attr('font-size', d => d.fontSize);
+      .attr({
+        'x': d => d.x,
+        'y': d => d.y,
+        'font-size': d => d.fontSize
+      })
     // Update
     const mm = app.getMmByLevel(app.ctx.level);
     const distanceX = app.getDistanceXByLevel(app.ctx.level);

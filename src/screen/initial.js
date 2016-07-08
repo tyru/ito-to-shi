@@ -31,10 +31,6 @@ export default class InitialScreen {
     this._totalElapsedMs = mod;
   }
 
-  getInterval() {
-    return 500;
-  }
-
   touchStart() {
     app.pressStartSelection.resetPressStart();
     app.pressStartSelection.drawPressStart(app.pressStartSelection.getPressStart());

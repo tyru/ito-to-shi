@@ -41,13 +41,15 @@ export default class ThreadSelection {
   drawThread($thread) {
     // Enter
     $thread.enter().append('circle.thread')
-      .attr('cx', function(d) { return 0; })
-      .attr('cy', function(d) { return 0; })
-      .attr('r', d => d.r)
-      .attr('fill', d => d.fill);
+      .attr({
+        'cx': () => 0,
+        'cy': () => 0,
+        'r': d => d.r,
+        'fill': d => d.fill
+      })
     // Update
     $thread.transition().duration(util.shouldAnimate() ? constant.THE_FPS : 0)
-      .attr('transform', function(d) {
+      .attr('transform', d => {
         return `translate(${d.cx},${d.cy})`;
       });
   }

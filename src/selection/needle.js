@@ -52,7 +52,6 @@ export default class NeedleSelection {
         willMove = i;
       } else {
         d.x += app.ctx.needleDx * movePercent;
-        d.animate = true;
       }
       if (d.x > app.threadDS.cx) rightsideNeedleNum++;
       maxRightX = Math.max(maxRightX, d.x);
@@ -132,7 +131,8 @@ export default class NeedleSelection {
       // http://stackoverflow.com/questions/26903355/how-to-cancel-scheduled-transition-in-d3
         d3.select(this)
           .transition().duration(util.shouldAnimate(d) ? constant.THE_FPS : 0)
-          .attr('transform', `translate(${d.x},${d.y})`);
+          .attr('transform', `translate(${d.x},${d.y})`)
+          .each('end', () => d.animate = true)
     });
     const $needleHoles =
       $needles.selectAll('g.needle rect.hole')

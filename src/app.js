@@ -43,13 +43,15 @@ class App {
     this.initContext(NORMAL_MODE);
     this._selectedMode = '';
 
+    // Switch to initial screen.
     this._screenDispatcher.changeScreen(constant.SCR_INITIAL);
+
+    // Register a main loop.
+    d3.timer(() => this.update());
   }
 
   // This is called when restart (GAME OVER -> (click)).
   initContext(mode) {
-    // NOTE: 'this._ctx' must be initialized before
-    // because below constructors may refer 'this._ctx'.
     this._screenDispatcher = new ScreenDispatcher(constant.SCR_INITIAL);
     this._screenDispatcher.register(constant.SCR_INITIAL, new InitialScreen());
     this._screenDispatcher.register(constant.SCR_SELECT_MODE, new SelectModeScreen());
@@ -64,7 +66,21 @@ class App {
     this._statusSelection = new StatusSelection(mode);
 
     this._ctx = this._getInitVars(mode);
-    this._statusSelection && this._statusSelection.setMode(mode);
+    this._statusSelection.setMode(mode);
+    this._prevUpdatedTime = Date.now();
+  }
+
+  update() {
+    // Skip if main loop was called too early.
+    const now = Date.now();
+    const elapsedMs = now - this._prevUpdatedTime;
+    this._prevUpdatedTime = now;
+    // Update screen.
+    const dispatcher = this._screenDispatcher;
+    const screen = dispatcher.screens[dispatcher.screenId];
+    if (screen && screen.update) {
+      screen.update(elapsedMs);
+    }
   }
 
   get screenDispatcher() { return this._screenDispatcher; }
@@ -110,7 +126,6 @@ class App {
       maxA: 10,
       hovering: false,
       threadGameOverGapY: 10,
-      theTimer: null,
       animateGlobal: true
     };
   }
@@ -178,10 +193,6 @@ class App {
     };
   }
 
-  getInitialNeedleHoleHeight() {
-    return this.getMmByLevel(0, this._getModeContext(NORMAL_MODE)[0]);
-  }
-
   // @returns Least score
   // @seealso this.ctx.scoreMmMap
   getScoreByLevel(level) {
@@ -192,11 +203,9 @@ class App {
   // @returns Hole height (mm)
   //          NOTE: Actually returns 'px' number, not 'mm' ... ;)
   // @seealso this.ctx.scoreMmMap
-  // @seealso getInitialNeedleHoleHeight()
-  //          (for optional argument)
-  getMmByLevel(level, scoreMmMap = this.ctx.scoreMmMap) {
-    level = Math.min(level, scoreMmMap.length - 1);
-    return scoreMmMap[level][1];
+  getMmByLevel(level) {
+    level = Math.min(level, this.ctx.scoreMmMap.length - 1);
+    return this.ctx.scoreMmMap[level][1];
   }
 
   // @returns distanceX

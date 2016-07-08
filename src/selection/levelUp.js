@@ -12,14 +12,14 @@ export default class LevelUpSelection {
     }];
   }
 
-  moveLevelUpText(show) {
+  moveLevelUpText(show, movePercent) {
     const dataset = this.levelUpDS[0];
     if (show) { // Start
       dataset.x = app.threadDS.cx;
       dataset.y = app.threadDS.cy;
       dataset.endY = dataset.y - dataset.hoverHeight;
     } else if (dataset.y >= dataset.endY) { // Hovering
-      dataset.y += dataset.dy;
+      dataset.y += dataset.dy * movePercent;
     } else if (dataset.endY) { // End
       dataset.x = dataset.y = -99;
       delete dataset.endY;

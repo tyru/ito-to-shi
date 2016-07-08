@@ -3,7 +3,8 @@ import * as constant from '../constant.js'
 
 export default class InitialScreen {
   constructor() {
-    this.blink = true;
+    this._blink = true;
+    this._totalElapsedMs = 0;
   }
 
   init() {
@@ -20,8 +21,14 @@ export default class InitialScreen {
     app.pressStartSelection.drawPressStart(app.pressStartSelection.getPressStart());
   }
 
-  update() {
-    this.blink = !this.blink;
+  // Blink "PRESS START" text per INITIAL_SCREEN_BLINK_INTERVAL.
+  update(elapsedMs) {
+    this._totalElapsedMs += elapsedMs;
+    const mod = this._totalElapsedMs % constant.INITIAL_SCREEN_BLINK_INTERVAL;
+    if (mod) {
+      this._blink = !this._blink;
+    }
+    this._totalElapsedMs = mod;
   }
 
   getInterval() {

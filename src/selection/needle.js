@@ -12,17 +12,17 @@ export default class NeedleSelection {
     this.needleGroupDS = [];    // <rect>
     this.needlePoleDS = [];    // <rect>
     this.needleHoleDS = [];    // <rect>
+  }
 
+  makeNeedles() {
     this._needlePoleDSTemplate = {  // <rect>
       x: 0, y: 0, fill: 'gray', width: 10, height: app.getSvgDS().height, animate: true
     };
     this._needleHoleDSTemplate = {  // <rect>
       x: 2, y: constant.NEEDLE_HOLE_DY, fill: 'white',
-      width: 6, height: app.getInitialNeedleHoleHeight(), animate: true
+      width: 6, height: app.getMmByLevel(0), animate: true
     };
-  }
 
-  makeNeedles() {
     // To place the next needle when hole height (mm) is changed,
     // We must have enough number of needles on screen (even if invisible).
     const svgDS = app.getSvgDS();
@@ -41,7 +41,7 @@ export default class NeedleSelection {
     }
   }
 
-  moveNeedles() {
+  moveNeedles(movePercent) {
     let willMove = -1;
     let maxRightX = -1;
     let rightsideNeedleNum = 0;
@@ -51,8 +51,7 @@ export default class NeedleSelection {
         util.assert(willMove === -1, '0 <= moving needles <= 1');
         willMove = i;
       } else {
-        d.x += app.ctx.needleDx;
-        d.animate = true;
+        d.x += app.ctx.needleDx * movePercent;
       }
       if (d.x > app.threadDS.cx) rightsideNeedleNum++;
       maxRightX = Math.max(maxRightX, d.x);
@@ -73,10 +72,10 @@ export default class NeedleSelection {
       needleGroupDS.y = util.randNumBetween(0, svgDS.height - mm);
       needleGroupDS.animate = false;
       needleGroupDS.passed = false;
+      // Change next level needle's height.
+      this.needleHoleDS[willMove].height = mm;
+      // Add a new needle if necessary.
       if (level > app.ctx.level) {
-        // Change next level needle's height.
-        this.needleHoleDS[willMove].height = mm;
-        // Add a new needle if necessary.
         const nextNeedleNum = Math.floor(svgDS.width / app.getDistanceXByLevel(app.ctx.level + 1) + 2);
         util.assert(nextNeedleNum >= this.needleGroupDS.length,
               'Lv.UP must not cause app.getMmByLevel() to be smaller number');
@@ -92,6 +91,7 @@ export default class NeedleSelection {
             });
             this.needlePoleDS.push(util.cloneObject(this._needlePoleDSTemplate));
             this.needleHoleDS.push(util.cloneObject(this._needleHoleDSTemplate));
+            this.needleHoleDS[this.needleHoleDS.length - 1].height = mm;
             objX += distanceX;
           }
         }
@@ -130,8 +130,9 @@ export default class NeedleSelection {
     $needles.each(function(d) {
       // http://stackoverflow.com/questions/26903355/how-to-cancel-scheduled-transition-in-d3
         d3.select(this)
-          .transition().duration(util.shouldAnimate(d) ? constant.THIRTY_FPS : 0)
-          .attr('transform', `translate(${d.x},${d.y})`);
+          .transition().duration(util.shouldAnimate(d) ? constant.THE_FPS : 0)
+          .attr('transform', `translate(${d.x},${d.y})`)
+          .each('end', () => d.animate = true)
     });
     const $needleHoles =
       $needles.selectAll('g.needle rect.hole')

@@ -3,6 +3,7 @@
 import d3 from 'd3'
 import 'd3-jetpack'
 import {app} from '../app.js'
+import * as constant from '../constant.js'
 
 export default class StatusSelection {
   constructor(mode) {
@@ -10,6 +11,8 @@ export default class StatusSelection {
       x: 60, y: 12, fontSize: '12px', text: '',
       score: 0, mode: mode
     }];
+    this._totalElapsedMs = 0;
+    this._fpsFmt = "60.0";
   }
 
   getScore() { return this._statusTextDS[0].score; }
@@ -21,7 +24,7 @@ export default class StatusSelection {
     return app.$svg.selectAll('#statusText').data(this._statusTextDS);
   }
 
-  drawStatusText($statusText) {
+  drawStatusText($statusText, elapsedMs = 0) {
     // Enter
     $statusText.enter().append('text#statusText.disable-select')
       .attr('x', d => d.x)
@@ -30,7 +33,17 @@ export default class StatusSelection {
     // Update
     const mm = app.getMmByLevel(app.ctx.level);
     const distanceX = app.getDistanceXByLevel(app.ctx.level);
+    this._totalElapsedMs += elapsedMs;
+    const interval = constant.UPDATE_FPS_TEXT_INTERVAL;
+    if (this._totalElapsedMs > interval) {
+      // Update FPS display
+      this._totalElapsedMs = this._totalElapsedMs % interval;
+      const fps = 1000.0 / elapsedMs;
+      this._fpsFmt = Math.floor(fps) + '.' + (Math.floor(fps * 10) % 10);
+    }
     $statusText
-      .text(function(d) { return `${d.mode} ${d.score}本 針穴${mm}mm 距離${distanceX}m`; });
+      .text(d => {
+        return `${d.mode} ${d.score}本 針穴${mm}mm 距離${distanceX}m ${this._fpsFmt}FPS`;
+      });
   }
 }

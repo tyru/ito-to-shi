@@ -8,9 +8,17 @@ export default class RunningScreen {
     app.needleSelection.makeNeedles();
     app.needleSelection.drawNeedles(app.needleSelection.getNeedles());
     app.statusSelection.drawStatusText(app.statusSelection.getStatusText());
+
+    // Draw at hidden point to get bbox width & height.
+    app.pauseSelection.makeHiddenPause();
+    app.pauseSelection.drawPause(app.pauseSelection.getPause());
+    this._paused = false;
   }
 
   update(elapsedMs) {
+    if (this._paused) {
+      return;
+    }
     const movePercent = elapsedMs / constant.THE_FPS;
     // Move objects
     let doContinue = app.threadSelection.moveThread(movePercent);
@@ -65,10 +73,23 @@ export default class RunningScreen {
   }
 
   touchStart() {
-    app.ctx.hovering = true;
+    if (this._paused) {
+      app.pauseSelection.makeHiddenPause();
+      app.pauseSelection.drawPause(app.pauseSelection.getPause());
+      this._paused = false;
+    } else {
+      app.ctx.hovering = true;
+    }
   }
 
   touchEnd() {
     app.ctx.hovering = false;
+  }
+
+  mouseOut() {
+    // Move to visible point
+    app.pauseSelection.movePause();
+    app.pauseSelection.drawPause(app.pauseSelection.getPause());
+    this._paused = true;
   }
 }

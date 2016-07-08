@@ -41,4 +41,11 @@ export default class ScreenDispatcher {
   touchEnd() {
     this.screens[this.screenId].touchEnd(...arguments);
   }
+
+  // mouseOut() is optional for each class.
+  mouseOut() {
+    if (this.screens[this.screenId].mouseOut) {
+      this.screens[this.screenId].mouseOut(...arguments);
+    }
+  }
 }

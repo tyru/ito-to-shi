@@ -5,6 +5,7 @@ import * as constant from './constant.js'
 import NeedleSelection from './selection/needle.js'
 import ThreadSelection from './selection/thread.js'
 import GameOverSelection from './selection/gameOver.js'
+import PauseSelection from './selection/pause.js'
 import PressStartSelection from './selection/pressStart.js'
 import LevelUpSelection from './selection/levelUp.js'
 import SelectModeScreenSelection from './selection/selectModeScreen.js'
@@ -38,6 +39,7 @@ class App {
     this._$svg = d3.select("body").select("svg")
       .on('touchstart keydown mousedown', () => this._screenDispatcher.touchStart())
       .on('touchend keyup mouseup', () => this._screenDispatcher.touchEnd())
+      .on('mouseleave', () => this._screenDispatcher.mouseOut())
       .attr({
         'width': svgDS.width,
         'height': svgDS.height
@@ -62,6 +64,7 @@ class App {
     this._needleSelection = new NeedleSelection();
     this._threadSelection = new ThreadSelection();
     this._gameOverSelection = new GameOverSelection();
+    this._pauseSelection = new PauseSelection();
     this._pressStartSelection = new PressStartSelection();
     this._levelUpSelection = new LevelUpSelection();
     this._selectModeScreenSelection = new SelectModeScreenSelection();
@@ -93,6 +96,8 @@ class App {
   set threadSelection(v) { return this._threadSelection = v; }
   get gameOverSelection() { return this._gameOverSelection; }
   set gameOverSelection(v) { return this._gameOverSelection = v; }
+  get pauseSelection() { return this._pauseSelection; }
+  set pauseSelection(v) { return this._pauseSelection = v; }
   get pressStartSelection() { return this._pressStartSelection; }
   set pressStartSelection(v) { return this._pressStartSelection = v; }
   get levelUpSelection() { return this._levelUpSelection; }

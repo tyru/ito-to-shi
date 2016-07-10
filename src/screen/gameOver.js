@@ -14,7 +14,7 @@ export default class GameOverScreen {
   touchStart() {
     app.initContext(app.selectedMode);
     app.gameOverSelection.drawGameOver(app.gameOverSelection.getGameOver());
-    app.screenDispatcher.changeScreen(constant.SCR_RUNNING);
+    app.screenDispatcher.changeScreen(constant.SCR_PLAYING);
   }
 
   touchEnd() { }

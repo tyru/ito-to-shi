@@ -33,6 +33,13 @@ export default class ScreenDispatcher {
     this.screenId = id;
   }
 
+  update(elapsedMs) {
+    const screen = this.screens[this.screenId];
+    if (screen && screen.update) {
+      screen.update(elapsedMs);
+    }
+  }
+
   touchStart() {
     d3.event.preventDefault();    // Don't propagate click event to outside <svg> tag
     this.screens[this.screenId].touchStart(...arguments);

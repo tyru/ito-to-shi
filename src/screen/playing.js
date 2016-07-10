@@ -1,7 +1,7 @@
 import {app} from '../app.js'
 import * as constant from '../constant.js'
 
-export default class RunningScreen {
+export default class PlayingScreen {
   init() {
     app.levelUpSelection.drawLevelUpText(app.levelUpSelection.getLevelUpText());
     app.threadSelection.drawThread(app.threadSelection.getThread());
@@ -19,7 +19,7 @@ export default class RunningScreen {
     if (this._paused) {
       return;
     }
-    const movePercent = elapsedMs / constant.THE_FPS;
+    const movePercent = elapsedMs / constant.MSEC_PER_FRAME;
     // Move objects
     let doContinue = app.threadSelection.moveThread(movePercent);
     app.needleSelection.moveNeedles(movePercent);
@@ -38,7 +38,7 @@ export default class RunningScreen {
     return doContinue;
   }
 
-  // Detect collisions with thread & needles.
+  // Detect collisions between thread & needles.
   _detectCollision() {
     let doContinue = true;
     app.needleSelection.getNeedles().each(d => {

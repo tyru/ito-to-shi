@@ -15,7 +15,7 @@ import ScreenDispatcher from './screenDispatcher.js'
 
 import InitialScreen from './screen/initial.js'
 import SelectModeScreen from './screen/selectMode.js'
-import RunningScreen from './screen/running.js'
+import PlayingScreen from './screen/playing.js'
 import GameOverScreen from './screen/gameOver.js'
 
 
@@ -33,7 +33,7 @@ const LUNATIC_MODE = 'LUNATIC';
 
 class App {
   // NOTE: This process must be invoked after 'app' variable is defined.
-  // (Thus this cannot be called inside constructor)
+  // (Thus this cannot be moved to constructor)
   run() {
     const svgDS = this.getSvgDS();
     this._$svg = d3.select("body").select("svg")
@@ -59,7 +59,7 @@ class App {
     this._screenDispatcher = new ScreenDispatcher(constant.SCR_INITIAL);
     this._screenDispatcher.register(constant.SCR_INITIAL, new InitialScreen());
     this._screenDispatcher.register(constant.SCR_SELECT_MODE, new SelectModeScreen());
-    this._screenDispatcher.register(constant.SCR_RUNNING, new RunningScreen());
+    this._screenDispatcher.register(constant.SCR_PLAYING, new PlayingScreen());
     this._screenDispatcher.register(constant.SCR_GAMEOVER, new GameOverScreen());
     this._needleSelection = new NeedleSelection();
     this._threadSelection = new ThreadSelection();
@@ -76,16 +76,10 @@ class App {
   }
 
   update() {
-    // Skip if main loop was called too early.
     const now = Date.now();
     const elapsedMs = now - this._prevUpdatedTime;
     this._prevUpdatedTime = now;
-    // Update screen.
-    const dispatcher = this._screenDispatcher;
-    const screen = dispatcher.screens[dispatcher.screenId];
-    if (screen && screen.update) {
-      screen.update(elapsedMs);
-    }
+    this._screenDispatcher.update(elapsedMs);
   }
 
   get screenDispatcher() { return this._screenDispatcher; }
@@ -200,14 +194,14 @@ class App {
     };
   }
 
-  // @returns Least score
+  // @return Least score
   // @seealso this.ctx.scoreMmMap
   getScoreByLevel(level) {
     level = Math.min(level, this.ctx.scoreMmMap.length - 1);
     return this.ctx.scoreMmMap[level][0];
   }
 
-  // @returns Hole height (mm)
+  // @return Hole height (mm)
   //          NOTE: Actually returns 'px' number, not 'mm' ... ;)
   // @seealso this.ctx.scoreMmMap
   getMmByLevel(level) {
@@ -215,7 +209,7 @@ class App {
     return this.ctx.scoreMmMap[level][1];
   }
 
-  // @returns distanceX
+  // @return distanceX
   // @seealso this.ctx.scoreMmMap
   getDistanceXByLevel(level) {
     level = Math.min(level, this.ctx.scoreMmMap.length - 1);

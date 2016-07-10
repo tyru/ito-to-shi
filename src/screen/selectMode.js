@@ -14,7 +14,7 @@ export default class SelectModeScreen {
       const selection = app.selectModeScreenSelection;
       selection.resetSelectModeScreen(selection.getSelectModeScreen());
       selection.drawSelectModeScreen(selection.getSelectModeScreen());
-      app.screenDispatcher.changeScreen(constant.SCR_RUNNING);
+      app.screenDispatcher.changeScreen(constant.SCR_PLAYING);
     }
   }
 

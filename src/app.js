@@ -125,7 +125,6 @@ class App {
       Da: threadDy,
       minA: -10,
       maxA: 10,
-      hovering: false,
       threadGameOverGapY: 10,
       animateGlobal: true
     };

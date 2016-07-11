@@ -78,12 +78,12 @@ export default class PlayingScreen {
       app.pauseSelection.drawPause(app.pauseSelection.getPause());
       this._paused = false;
     } else {
-      app.ctx.hovering = true;
+      app.threadSelection.setHovering(true);
     }
   }
 
   touchEnd() {
-    app.ctx.hovering = false;
+    app.threadSelection.setHovering(false);
   }
 
   mouseOut() {

@@ -13,6 +13,7 @@ export default class ThreadSelection {
       cx: svgDS.width * 0.33, cy: svgDS.height * 0.33,
       fill: 'red', r: 5, a: 1
     }];
+    this._hovering = false;
   }
 
   getDS() {
@@ -21,7 +22,7 @@ export default class ThreadSelection {
 
   moveThread(movePercent) {
     const dataset = this._threadDS[0];
-    if (!app.ctx.hovering) {
+    if (!this._hovering) {
       if (dataset.a < app.ctx.maxA) {
         dataset.a += app.ctx.Da * movePercent;
       }
@@ -52,5 +53,9 @@ export default class ThreadSelection {
       .attr('transform', d => {
         return `translate(${d.cx},${d.cy})`;
       });
+  }
+
+  setHovering(value) {
+    this._hovering = !!value;
   }
 }

@@ -9,13 +9,11 @@ export default class SelectModeScreen {
   }
 
   touchStart() {
-    if (app.selectedMode !== '') {
-      app.initContext(app.selectedMode);
-      const selection = app.selectModeScreenSelection;
-      selection.resetSelectModeScreen(selection.getSelectModeScreen());
-      selection.drawSelectModeScreen(selection.getSelectModeScreen());
-      app.screenDispatcher.changeScreen(constant.SCR_PLAYING);
-    }
+    const selection = app.selectModeScreenSelection;
+    selection.resetSelectModeScreen(selection.getSelectModeScreen());
+    selection.drawSelectModeScreen(selection.getSelectModeScreen());
+    app.initContext(app.selectedMode);
+    app.screenDispatcher.changeScreen(constant.SCR_PLAYING);
   }
 
   touchEnd() { }

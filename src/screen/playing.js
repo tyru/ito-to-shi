@@ -10,8 +10,13 @@ export default class PlayingScreen {
     app.statusSelection.drawStatusText(app.statusSelection.getStatusText());
 
     // Draw at hidden point to get bbox width & height.
+    // * "GAME OVER" text
+    app.gameOverSelection.makeHiddenGameOver();
+    app.gameOverSelection.drawGameOver(app.gameOverSelection.getGameOver());
+    // * "PAUSE" text
     app.pauseSelection.makeHiddenPause();
     app.pauseSelection.drawPause(app.pauseSelection.getPause());
+
     this._paused = false;
   }
 
@@ -33,9 +38,13 @@ export default class PlayingScreen {
     app.levelUpSelection.drawLevelUpText(app.levelUpSelection.getLevelUpText());
     // GAME OVER
     if (!doContinue) {
-      app.screenDispatcher.changeScreen(constant.SCR_GAMEOVER);
+      this.changeToGameOver();
     }
     return doContinue;
+  }
+
+  changeToGameOver() {
+    app.screenDispatcher.changeScreen(constant.SCR_GAMEOVER);
   }
 
   // Detect collisions between thread & needles.

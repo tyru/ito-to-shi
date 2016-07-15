@@ -22,14 +22,16 @@ export default class ScreenDispatcher {
   changeScreen(id) {
     const screen = this.screens[id];
     if (!screen) {
+      console.log("screen id '" + id + "' is not defined");
       return;
     }
-    // Call init functions
+    // Call 'init' function
     if (screen.init) {
       app.ctx.animateGlobal = false;
       screen.init();
       app.ctx.animateGlobal = true;
     }
+    console.log("screen id has changed: " + this.screenId + " -> " + id);
     this.screenId = id;
   }
 

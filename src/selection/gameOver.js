@@ -6,9 +6,7 @@ import {app} from '../app.js'
 
 export default class GameOverSelection {
   constructor() {
-    this.gameOverDS = [{  // <text>
-      x: -99, y: -99, fontSize: '24px', text: 'GAME OVER'
-    }];
+    this.makeHiddenGameOver();
   }
 
   makeHiddenGameOver() {

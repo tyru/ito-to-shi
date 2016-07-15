@@ -45,7 +45,6 @@ class App {
         'height': svgDS.height
       })
     this.initContext(NORMAL_MODE);
-    this._selectedMode = '';
 
     // Switch to initial screen.
     this._screenDispatcher.changeScreen(constant.SCR_INITIAL);
@@ -73,6 +72,7 @@ class App {
     this._ctx = this._getInitVars(mode);
     this._statusSelection.setMode(mode);
     this._prevUpdatedTime = Date.now();
+    this._selectedMode = mode;
   }
 
   update() {

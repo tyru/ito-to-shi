@@ -31,9 +31,8 @@ export default class NeedleSelection {
     let objX = svgDS.width;
     for (let i = 0; i < needleNum; i++) {
       this.needleGroupDS.push({
-        x: objX,
-        y: util.randNumBetween(0, svgDS.height - app.ctx.scoreMmMap[0][1]),
-        passed: false
+        x: objX, y: util.randNumBetween(0, svgDS.height - app.ctx.scoreMmMap[0][1]),
+        passed: false, animate: false
       });
       this.needlePoleDS.push(util.cloneObject(this._needlePoleDSTemplate));
       this.needleHoleDS.push(util.cloneObject(this._needleHoleDSTemplate));
@@ -85,9 +84,8 @@ export default class NeedleSelection {
           let objX = needleGroupDS.x + distanceX;
           for (let i = 0; i < necessaryNeedleNum; i++) {
             this.needleGroupDS.push({
-              x: objX,
-              y: util.randNumBetween(0, svgDS.height - mm),
-              passed: false
+              x: objX, y: util.randNumBetween(0, svgDS.height - mm),
+              passed: false, animate: false
             });
             this.needlePoleDS.push(util.cloneObject(this._needlePoleDSTemplate));
             this.needleHoleDS.push(util.cloneObject(this._needleHoleDSTemplate));
@@ -133,10 +131,10 @@ export default class NeedleSelection {
     // Move with animation.
     $needles.each(function(d) {
       // http://stackoverflow.com/questions/26903355/how-to-cancel-scheduled-transition-in-d3
-        d3.select(this)
-          .transition().duration(util.shouldAnimate(d) ? constant.MSEC_PER_FRAME : 0)
-          .attr('transform', `translate(${d.x},${d.y})`)
-          .each('end', () => d.animate = true)
+      d3.select(this)
+        .transition().duration(util.shouldAnimate(d) ? constant.MSEC_PER_FRAME : 0)
+        .attr('transform', `translate(${d.x},${d.y})`)
+        .each('end', () => d.animate = true)
     });
     const $needleHoles =
       $needles.selectAll('g.needle rect.hole')

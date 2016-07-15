@@ -1,12 +1,13 @@
 {
   "name": "ito-to-shi",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "スマホやPCで暇なとき遊べる懐かしの糸通しゲーム",
   "main": "src/itotoshi.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "gulp build",
-    "build-dev": "gulp build-dev"
+    "build-dev": "gulp build-dev",
+    "lint": "eslint src/**/*.js"
   },
   "repository": {
     "type": "git",
@@ -21,6 +22,10 @@
   "devDependencies": {
     "babelify": "^7.3.0",
     "browserify": "^13.0.1",
+    "eslint": "^3.0.1",
+    "eslint-config-standard": "^5.3.5",
+    "eslint-plugin-promise": "^2.0.0",
+    "eslint-plugin-standard": "^2.0.0",
     "gulp": "^3.9.1",
     "gulp-load-plugins": "^1.2.4",
     "gulp-sourcemaps": "^1.6.0",

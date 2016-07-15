@@ -7,6 +7,7 @@ import ThreadSelection from './selection/thread.js'
 import GameOverSelection from './selection/gameOver.js'
 import PauseSelection from './selection/pause.js'
 import PressStartSelection from './selection/pressStart.js'
+import InitialTransparentRect from './selection/initialTransparentRect.js'
 import LevelUpSelection from './selection/levelUp.js'
 import SelectModeScreenSelection from './selection/selectModeScreen.js'
 import StatusSelection from './selection/status.js'
@@ -65,6 +66,7 @@ class App {
     this._gameOverSelection = new GameOverSelection();
     this._pauseSelection = new PauseSelection();
     this._pressStartSelection = new PressStartSelection();
+    this._initialTransparentRect = new InitialTransparentRect();
     this._levelUpSelection = new LevelUpSelection();
     this._selectModeScreenSelection = new SelectModeScreenSelection();
     this._statusSelection = new StatusSelection(mode);
@@ -94,6 +96,8 @@ class App {
   set pauseSelection(v) { return this._pauseSelection = v; }
   get pressStartSelection() { return this._pressStartSelection; }
   set pressStartSelection(v) { return this._pressStartSelection = v; }
+  get initialTransparentRect() { return this._initialTransparentRect; }
+  set initialTransparentRect(v) { return this._initialTransparentRect = v; }
   get levelUpSelection() { return this._levelUpSelection; }
   set levelUpSelection(v) { return this._levelUpSelection = v; }
   get selectModeScreenSelection() { return this._selectModeScreenSelection; }

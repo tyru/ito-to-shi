@@ -5,8 +5,6 @@ import PlayingScreen from './playing.js'
 
 export default class InitialScreen {
   constructor() {
-    this._blink = true;
-    this._totalElapsedMs = 0;
     this._playingScreen = new PlayingScreen();
     this._playingScreen.changeToGameOver = function changeToGameOver() {
       app.initContext(app.selectedMode);
@@ -16,13 +14,23 @@ export default class InitialScreen {
 
   init() {
     this._playingScreen.init();
+    // Make demo play's opacity layer
+    app.initialTransparentRect.makeInitialTransparentRect();
+    app.initialTransparentRect.drawInitialTransparentRect(
+      app.initialTransparentRect.getInitialTransparentRect()
+    );
+    // Draw at hidden point to get bbox width & height
+    app.pressStartSelection.makeHiddenPressStart();
+    app.pressStartSelection.drawPressStart(app.pressStartSelection.getPressStart());
+    // Move to visible point
+    app.pressStartSelection.movePressStart();
+    app.pressStartSelection.drawPressStart(app.pressStartSelection.getPressStart());
   }
 
   // Blink "PRESS START" text per INITIAL_SCREEN_BLINK_INTERVAL.
   update(elapsedMs) {
     this._determineHovering();
     this._playingScreen.update(elapsedMs);
-    this._blinkPressStart(elapsedMs);
   }
 
   _determineHovering() {
@@ -42,18 +50,15 @@ export default class InitialScreen {
     app.threadSelection.setHovering(doHover);
   }
 
-  _blinkPressStart(elapsedMs) {
-    this._totalElapsedMs += elapsedMs;
-    const mod = this._totalElapsedMs % constant.INITIAL_SCREEN_BLINK_INTERVAL;
-    if (mod) {
-      this._blink = !this._blink;
-    }
-    this._totalElapsedMs = mod;
-  }
-
   touchStart() {
     app.pressStartSelection.resetPressStart();
-    app.pressStartSelection.drawPressStart(app.pressStartSelection.getPressStart());
+    app.pressStartSelection.drawPressStart(
+      app.pressStartSelection.getPressStart()
+    );
+    app.initialTransparentRect.resetInitialTransparentRect();
+    app.initialTransparentRect.drawInitialTransparentRect(
+      app.initialTransparentRect.getInitialTransparentRect()
+    );
     app.screenDispatcher.changeScreen(constant.SCR_SELECT_MODE);
   }
 

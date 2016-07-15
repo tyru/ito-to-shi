@@ -6,55 +6,55 @@ import 'd3-jetpack'
 import {app} from './app.js'
 
 export default class ScreenDispatcher {
-  constructor(id) {
-    this.screens = {};
-    this.screenId = id;
+  constructor (id) {
+    this.screens = {}
+    this.screenId = id
   }
 
-  setScreenId(id) {
-    this.screenId = id;
+  setScreenId (id) {
+    this.screenId = id
   }
 
-  register(id, func) {
-    this.screens[id] = func;
+  register (id, func) {
+    this.screens[id] = func
   }
 
-  changeScreen(id) {
-    const screen = this.screens[id];
+  changeScreen (id) {
+    const screen = this.screens[id]
     if (!screen) {
-      console.log("screen id '" + id + "' is not defined");
-      return;
+      console.log('screen id \'' + id + '\' is not defined')
+      return
     }
     // Call 'init' function
     if (screen.init) {
-      app.ctx.animateGlobal = false;
-      screen.init();
-      app.ctx.animateGlobal = true;
+      app.ctx.animateGlobal = false
+      screen.init()
+      app.ctx.animateGlobal = true
     }
-    console.log("screen id has changed: " + this.screenId + " -> " + id);
-    this.screenId = id;
+    console.log('screen id has changed: ' + this.screenId + ' -> ' + id)
+    this.screenId = id
   }
 
-  update(elapsedMs) {
-    const screen = this.screens[this.screenId];
+  update (elapsedMs) {
+    const screen = this.screens[this.screenId]
     if (screen && screen.update) {
-      screen.update(elapsedMs);
+      screen.update(elapsedMs)
     }
   }
 
-  touchStart() {
-    d3.event.preventDefault();    // Don't propagate click event to outside <svg> tag
-    this.screens[this.screenId].touchStart(...arguments);
+  touchStart () {
+    d3.event.preventDefault()    // Don't propagate click event to outside <svg> tag
+    this.screens[this.screenId].touchStart(...arguments)
   }
 
-  touchEnd() {
-    this.screens[this.screenId].touchEnd(...arguments);
+  touchEnd () {
+    this.screens[this.screenId].touchEnd(...arguments)
   }
 
   // mouseOut() is optional for each class.
-  mouseOut() {
+  mouseOut () {
     if (this.screens[this.screenId].mouseOut) {
-      this.screens[this.screenId].mouseOut(...arguments);
+      this.screens[this.screenId].mouseOut(...arguments)
     }
   }
 }

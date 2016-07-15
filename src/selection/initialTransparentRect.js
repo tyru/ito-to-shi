@@ -1,31 +1,29 @@
 // Manipulation methods for selection(s) of select mode screen
 
-import d3 from 'd3'
-import 'd3-jetpack'
 import {app} from '../app.js'
 
 export default class InitialTransparentRect {
-  constructor() {
-    this.initialTransparentRect = [];
+  constructor () {
+    this.initialTransparentRect = []
   }
 
-  makeInitialTransparentRect() {
+  makeInitialTransparentRect () {
     this.initialTransparentRect = [{    // <g>
       x: 0, y: 0, fill: 'white', fillOpacity: '0.5',
       width: app.ctx.svgDS.width, height: app.ctx.svgDS.height
-    }];
+    }]
   }
 
-  resetInitialTransparentRect() {
-    this.initialTransparentRect = [];
+  resetInitialTransparentRect () {
+    this.initialTransparentRect = []
   }
 
-  getInitialTransparentRect() {
+  getInitialTransparentRect () {
     return app.$svg.selectAll('.initialTransparentRect')
-                   .data(this.initialTransparentRect);
+                   .data(this.initialTransparentRect)
   }
 
-  drawInitialTransparentRect($initialTransparentRect) {
+  drawInitialTransparentRect ($initialTransparentRect) {
     // Enter
     $initialTransparentRect.enter()
       .append('rect.initialTransparentRect')
@@ -39,6 +37,6 @@ export default class InitialTransparentRect {
         })
 
     // Exit
-    $initialTransparentRect.exit().remove();
+    $initialTransparentRect.exit().remove()
   }
 }

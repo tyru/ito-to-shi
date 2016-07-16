@@ -13,6 +13,8 @@ import {runApp} from './app.js'
       elem.mozRequestFullScreen()
     } else if (elem.webkitRequestFullscreen) {
       elem.webkitRequestFullscreen()
+    } else {
+      alert('Fullscreen feature is not supported on your platform.')
     }
   }
 

@@ -35,15 +35,22 @@ class App {
   // NOTE: This process must be invoked after 'app' variable is defined.
   // (Thus this cannot be moved to constructor)
   run () {
+    // Add event listeners to outside svg tag.
+    // This resolves the problem that iOS Safari & Chrome can't handle
+    // touchstart,touchend events at only 'Playing' screen...
+    // XXX: I don't know why this problem is occurred by iOS, browser-dependant,
+    // or my ignorance about web standards...;)
     const svgDS = this.getSvgDS()
-    this._$svg = d3.select('body').select('svg')
-      .on('touchstart keydown mousedown', () => this._screenDispatcher.touchStart())
-      .on('touchend keyup mouseup', () => this._screenDispatcher.touchEnd())
-      .on('mouseleave', () => this._screenDispatcher.mouseOut())
-      .attr({
-        'width': svgDS.width,
-        'height': svgDS.height
-      })
+    this._$svg =
+      d3.select('.container')
+        .on('touchstart keydown mousedown', () => this._screenDispatcher.touchStart(".container"))
+        .on('touchend keyup mouseup', () => this._screenDispatcher.touchEnd())
+        .on('mouseleave', () => this._screenDispatcher.mouseOut())
+      .select('svg')
+        .attr({
+          'width': svgDS.width,
+          'height': svgDS.height
+        })
     this.initContext(NORMAL_MODE)
 
     // Switch to initial screen.

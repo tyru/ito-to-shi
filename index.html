@@ -9,21 +9,35 @@
   <body>
     <h1>糸通し</h1>
 
-    <svg id='screen'
-         version="1.1"
-         xmlns="http://www.w3.org/2000/svg"
-         xmlns:xlink="http://www.w3.org/1999/xlink"
-         xml:space="preserve"></svg>
+    <div class='container'>
+      <svg id='screen'
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xml:space="preserve"></svg>
+    </div>
 
     <button id='fullscreen-btn'>フルスクリーン</button>
 
     <p>
-      暇なとき定期的にスマホで糸通しがやりたくなるのでカッとなって作った。<br>
-      タッチ(touchstart, touchend)、マウス(mousedown, mouseup)での入力に対応してます。<br>
-      PC と Android の Chrome で確認済み。
+      暇なとき定期的にスマホで糸通しがやりたくなるのでカッとなって作った。
     </p>
     <p>
-      <a href='v0.0.3/'>古いバージョン</a>だとカクつかないかもしれません (requestAnimationFrame() ではなく setInterval() を使っています)。
+      <h2>確認済み環境</h2>
+      <ul>
+        <li>PC: Chrome</li>
+        <li>Android: Chrome</li>
+        <li>iOS: Chrome, Safari</li>
+      </ul>
+    </p>
+    <p>
+      <h2>旧バージョン一覧</h2>
+      それぞれのバージョンでの詳細な Changelog は<a href='https://github.com/tyru/ito-to-shi/pulls?q=is%3Apr+is%3Aclosed'>こちら</a>。
+      <ul>
+        <li><a href='v0.0.5/'>v0.0.5</a>: デモプレイ追加、マウスが領域外に出た場合にPAUSEにするようにした</li>
+        <li><a href='v0.0.4/'>v0.0.4</a>: setInterval() ではなく requestAnimationFrame() を使うようにした</li>
+        <li><a href='v0.0.3/'>v0.0.3</a>: バグ修正</li>
+      </ul>
     </p>
 
     <style>
@@ -40,6 +54,11 @@
       #fullscreen-btn {
         font-size: 32px;
         width: 320px;
+      }
+      ul {
+        margin: 0;
+        margin-left: 20px;
+        padding: 0;
       }
     </style>
     <script src='dist/itotoshi.js'></script>

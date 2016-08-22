@@ -1,13 +1,12 @@
 var gulp = require('gulp');
-var browserify = require('browserify');
-var source = require('vinyl-source-stream');
-var buffer = require('vinyl-buffer');
 
 var SRC = 'src/itotoshi.js';
+var SRC_LINT_GLOB = 'src/**/*.js';
 var SRC_BASENAME = 'itotoshi.js';
 var DEST = 'dist';
 
-gulp.task('build', function() {
+// Do lint task for production build.
+gulp.task('build', ['lint'], function() {
   return doBuild(false);
 });
 
@@ -20,6 +19,10 @@ function doBuild(development) {
     console.log(err.message);
     console.log(err.stack);
   }
+
+  var browserify = require('browserify');
+  var source = require('vinyl-source-stream');
+  var buffer = require('vinyl-buffer');
 
   var b = browserify({
     entries: SRC,
@@ -44,3 +47,12 @@ function doBuild(development) {
   b = b.pipe(gulp.dest(DEST));
   return b;
 }
+
+gulp.task('lint', function() {
+  var eslint = require('gulp-eslint');
+
+  return gulp.src(SRC_LINT_GLOB)
+    .pipe(eslint({ useEslintrc: true }))
+    .pipe(eslint.format())
+    .pipe(eslint.failOnError());
+});

@@ -1,10 +1,11 @@
 var gulp = require('gulp');
-var $ = require('gulp-load-plugins')();
 var browserify = require('browserify');
-var transform = require('vinyl-transform');
-// var babelify = require('babelify');
 var source = require('vinyl-source-stream');
-var through2 = require('through2');
+var buffer = require('vinyl-buffer');
+
+var SRC = 'src/itotoshi.js';
+var SRC_BASENAME = 'itotoshi.js';
+var DEST = 'dist';
 
 gulp.task('build', function() {
   return doBuild(false);
@@ -15,34 +16,31 @@ gulp.task('build-dev', function() {
 });
 
 function doBuild(development) {
-  var c = gulp.src('./src/**/*.js')
-  // c = c.on("error", function (err) {
-  //   console.log("Error : " + err.message);
-  //   console.log(err.stack);
-  // })
-  c = c.pipe(through2.obj(function(file, encode, callback) {
-      // fileにはsrcで読み込んだファイルの情報が引き渡される
-      // file.pathを利用してbrowserifyインスタンスを生成する
-      browserify(file.path)
-        .transform('babelify', {presets: ["es2015"]})
-        .bundle(function(err, res) {
-          if (err) {
-            console.log("Error : " + err.message);
-            console.log(err.stack);
-          }
-          // bundleを実行し，処理結果でcontentsを上書きする
-          file.contents = res;
-          // callbackを実行し，次の処理にfileを引き渡す
-          // nullになっている部分はエラー情報
-          callback(null, file)
-        });
-  }))
-  if (!development) {
-    c = c.pipe($.uglify())
-    c = c.pipe($.sourcemaps.init({loadMaps: true}))
-    c = c.pipe($.sourcemaps.write())
+  function onError(err) {
+    console.log(err.message);
+    console.log(err.stack);
   }
-  // c = c.pipe(source('bundle.js'))
-  c = c.pipe(gulp.dest('./dist'));
-  return c;
+
+  var b = browserify({
+    entries: SRC,
+    debug: true,
+  });
+  b = b.transform('babelify')
+  b = b.bundle()
+  b = b.on('error', onError);
+  // turns the output bundle stream into a stream containing
+  // the normal attributes gulp plugins expect.
+  b = b.pipe(source(SRC_BASENAME));
+  // transform streaming contents into buffer contents
+  // (because gulp-sourcemaps does not support streaming contents)
+  b = b.pipe(buffer());
+  if (!development) {
+    var sourcemaps = require('gulp-sourcemaps');
+    var uglify = require('gulp-uglify');
+    b = b.pipe(sourcemaps.init({loadMaps: true}));
+    b = b.pipe(uglify()).on('error', onError);
+    b = b.pipe(sourcemaps.write());
+  }
+  b = b.pipe(gulp.dest(DEST));
+  return b;
 }

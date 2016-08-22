@@ -20,6 +20,7 @@
   },
   "homepage": "http://tyru.github.io/ito-to-shi/",
   "devDependencies": {
+    "babel-preset-es2015": "^6.13.2",
     "babelify": "^7.3.0",
     "browserify": "^13.0.1",
     "eslint": "^3.0.1",
@@ -27,12 +28,10 @@
     "eslint-plugin-promise": "^2.0.0",
     "eslint-plugin-standard": "^2.0.0",
     "gulp": "^3.9.1",
-    "gulp-load-plugins": "^1.2.4",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-uglify": "^1.5.4",
-    "through2": "^2.0.1",
-    "vinyl-source-stream": "^1.1.0",
-    "vinyl-transform": "^1.0.0"
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
     "d3": "^3.5.17",

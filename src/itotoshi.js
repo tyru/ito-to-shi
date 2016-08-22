@@ -14,7 +14,7 @@ import {runApp} from './app.js'
     } else if (elem.webkitRequestFullscreen) {
       elem.webkitRequestFullscreen()
     } else {
-      alert('Fullscreen feature is not supported on your platform.')
+      $window.alert('Fullscreen feature is not supported on your platform.')
     }
   }
 

@@ -43,7 +43,7 @@ class App {
     const svgDS = this.getSvgDS()
     this._$svg =
       d3.select('.container')
-        .on('touchstart keydown mousedown', () => this._screenDispatcher.touchStart(".container"))
+        .on('touchstart keydown mousedown', () => this._screenDispatcher.touchStart('.container'))
         .on('touchend keyup mouseup', () => this._screenDispatcher.touchEnd())
         .on('mouseleave', () => this._screenDispatcher.mouseOut())
       .select('svg')

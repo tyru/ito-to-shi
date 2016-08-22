@@ -36,5 +36,16 @@
   "dependencies": {
     "d3": "^3.5.17",
     "d3-jetpack": "^1.0.2"
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  },
+  "eslintConfig": {
+    "extends": "standard",
+    "plugins": [
+      "standard"
+    ]
   }
 }
